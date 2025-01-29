@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: "BRS Agent - ChatGPT",
   description: "A ChatGPT-powered assistant for BRS.",
   keywords: "ChatGPT, BRS, AI Assistant, Productivity",
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
