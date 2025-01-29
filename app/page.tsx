@@ -668,6 +668,9 @@ export default function ChatInterface() {
       }
 
       const reader = response.body?.getReader();
+      let currentMessage = "";
+      let messageId = Date.now().toString();
+
       while (true) {
         const { done, value } = (await reader?.read()) || {};
         if (done) break;
@@ -680,6 +683,7 @@ export default function ChatInterface() {
           try {
             const jsonStr = line.replace('data: ', '');
             const json = JSON.parse(jsonStr);
+            
             switch (json.type) {
               case "function":
                 console.log("Function call started:", json.data);
@@ -688,17 +692,35 @@ export default function ChatInterface() {
                 console.log("Function call finished:", json.data);
                 break;
               case "message":
-                setMessages((prev) => [...prev, {
-                  id: Date.now().toString(),
-                  content: json.content,
-                  role: "assistant", 
-                  timestamp: Date.now(),
-                }]);
+                // Split the new content into words and add them one by one
+                const newWords = json.content.split(' ');
+                for (let word of newWords) {
+                  await new Promise((resolve) => setTimeout(resolve, 20)); // Adjust timing as needed
+                  currentMessage += (currentMessage ? ' ' : '') + word;
+                  setMessages((prev) => {
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage?.id === messageId) {
+                      return [
+                        ...prev.slice(0, -1),
+                        { ...lastMessage, content: currentMessage }
+                      ];
+                    } else {
+                      return [
+                        ...prev,
+                        {
+                          id: messageId,
+                          content: currentMessage,
+                          role: "assistant",
+                          timestamp: Date.now(),
+                        }
+                      ];
+                    }
+                  });
+                }
                 break;
               case "end":
                 console.log("All chunks received.");
                 break;
-              // ...existing code...
             }
           } catch (e) {
             console.error("Error parsing chunk:", e);
@@ -707,7 +729,6 @@ export default function ChatInterface() {
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        // Add partial message indicator when request is aborted
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage?.role === "assistant") {
@@ -720,7 +741,6 @@ export default function ChatInterface() {
         });
       } else {
         console.error("Error fetching AI response:", error);
-        // Optionally, add user-facing error message
         setMessages(prev => [
           ...prev,
           {
