@@ -22,6 +22,12 @@ export async function POST(request: Request) {
   console.log("SUBFUNCTION HAS BEEN CALLED -> IMPLEMENT EDITS")
   console.log()
 
+  const verbose = {
+    timestamp: new Date().toISOString(),
+    route: "implement_edits",
+    inputs: { user_inputs, file_name }
+  };
+
   let overview;
 
   // get an overview
@@ -67,7 +73,8 @@ export async function POST(request: Request) {
       overview: overview,
       message: "Display the overview of what was implemented to the user in a message, without changing it at all. The edits have successfully been made to the file",
       file_name: file_name,
-      latestVersion: latestVersion
+      latestVersion: latestVersion,
+      verbose: verbose // Add verbose data to response
     })
   } catch (error) {
     return Response.json({ success: false, message: "Successfully generated an implementation plan, but was unable to implemenent it"})

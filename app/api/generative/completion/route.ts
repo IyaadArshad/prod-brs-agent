@@ -104,7 +104,17 @@ export async function POST(request: Request) {
     const streamingResponse = new Response(
       new ReadableStream({
         async start(controller) {
+          const sendVerbose = (data: any) => {
+            controller.enqueue(
+              new TextEncoder().encode(
+                `data: ${JSON.stringify({ type: "verbose", data })}\n\n`
+              )
+            );
+          };
+
           while (true) {
+            sendVerbose({ message: "Starting OpenAI request", conversation });
+
             const openAiResponse = await fetch(
               "https://api.openai.com/v1/chat/completions",
               {
@@ -230,6 +240,13 @@ export async function POST(request: Request) {
                 console.error(`Function ${name} not found.`);
                 throw new Error(`Function ${name} not found.`);
               }
+
+              sendVerbose({
+                message: "Function called",
+                name,
+                arguments: functionArgs,
+                result: functionResult
+              });
 
               // Send "functionResult" chunk
               controller.enqueue(

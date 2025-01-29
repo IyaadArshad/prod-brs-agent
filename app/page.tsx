@@ -29,6 +29,18 @@ import Cookies from 'js-cookie'; // Add this import
 import gravatarUrl from "gravatar-url";
 import { parseMarkdown } from "@/utils/markdownParser"; // Add this import
 
+declare global {
+  interface Window {
+    verbose: boolean;
+  }
+}
+
+function logVerbose(...args: any[]) {
+  if (typeof window !== 'undefined' && window.verbose) {
+    console.log('[BRS Agent]', ...args);
+  }
+}
+
 interface MessageProps {
   message: Message;
   onEdit?: (id: string, content: string) => void;
@@ -684,12 +696,15 @@ export default function ChatInterface() {
             const jsonStr = line.replace('data: ', '');
             const json = JSON.parse(jsonStr);
             
+            // Add verbose logging
+            logVerbose('Stream chunk:', json);
+
             switch (json.type) {
               case "function":
-                console.log("Function call started:", json.data);
+                logVerbose("Function call started:", json.data);
                 break;
               case "functionResult":
-                console.log("Function call finished:", json.data);
+                logVerbose("Function call result:", json.data);
                 break;
               case "message":
                 // Split the new content into words and add them one by one
@@ -718,8 +733,11 @@ export default function ChatInterface() {
                   });
                 }
                 break;
+              case "verbose":
+                logVerbose("Verbose log:", json.data);
+                break;
               case "end":
-                console.log("All chunks received.");
+                logVerbose("Stream ended");
                 break;
             }
           } catch (e) {
@@ -727,6 +745,7 @@ export default function ChatInterface() {
           }
         }
       }
+
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         setMessages(prev => {
