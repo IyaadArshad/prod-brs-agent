@@ -105,6 +105,12 @@ export async function POST(request: Request) {
       new ReadableStream({
         async start(controller) {
           const sendVerbose = (data: any) => {
+            // Filter out system messages from conversation logs
+            if (data.conversation) {
+              data.conversation = data.conversation.filter(
+                (msg: any) => msg.role !== 'system'
+              );
+            }
             controller.enqueue(
               new TextEncoder().encode(
                 `data: ${JSON.stringify({ type: "verbose", data })}\n\n`
