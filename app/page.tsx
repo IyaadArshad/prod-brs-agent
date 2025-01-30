@@ -228,6 +228,19 @@ const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onSelect, filter, spl
   );
 }
 
+const WordSpan = ({ word, index }: { word: string; index: number }) => {
+  return (
+    <motion.span
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.1, delay: index * 0.04 }}
+      className="inline-block"
+    >
+      {word}&nbsp;
+    </motion.span>
+  );
+};
+
 function MessageComponent({
   message,
   onEdit,
@@ -322,8 +335,17 @@ function MessageComponent({
         ) : (
           <div 
             className="markdown-body whitespace-pre-wrap prose prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }}
-          />
+          >
+            {message.role === "assistant" ? (
+              <div>
+                {message.content.split(' ').map((word, index) => (
+                  <WordSpan key={index} word={word} index={index} />
+                ))}
+              </div>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }} />
+            )}
+          </div>
         )}
       </div>
       <div
@@ -710,7 +732,6 @@ export default function ChatInterface() {
                 // Split the new content into words and add them one by one
                 const newWords = json.content.split(' ');
                 for (let word of newWords) {
-                  await new Promise((resolve) => setTimeout(resolve, 20)); // Adjust timing as needed
                   currentMessage += (currentMessage ? ' ' : '') + word;
                   setMessages((prev) => {
                     const lastMessage = prev[prev.length - 1];
