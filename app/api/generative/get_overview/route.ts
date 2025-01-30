@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         // Fetch file contents with better error handling
         const file_contents_fetch = await Promise.race([
             fetch(
-                `http://localhost:3000/api/generative/functions/read_file?file_name=${encodeURIComponent(file_name)}`,
+                `https://brs-agent.datamation.lk/api/generative/functions/read_file?file_name=${encodeURIComponent(file_name)}`,
                 {
                     headers: { 'Cache-Control': 'no-cache' }
                 }

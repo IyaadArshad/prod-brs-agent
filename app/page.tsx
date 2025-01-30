@@ -592,7 +592,7 @@ export default function ChatInterface() {
     } else if (newMessage.content.startsWith("/create")) {
 
       async function createFile(file_name: string) {
-        const response = await fetch("http://localhost:3000/api/data/createFile", {
+        const response = await fetch("https://brs-agent.datamation.lk/api/data/createFile", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ file_name }),

@@ -6,7 +6,7 @@ const openai = new OpenAI({
 });
 
 async function create_file(file_name: string) {
-  const response = await fetch("http://localhost:3000/api/data/createFile", {
+  const response = await fetch("https://brs-agent.datamation.lk/api/data/createFile", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ file_name }),
@@ -21,7 +21,7 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(file_name: string, data: string) {
   const response = await fetch(
-    "http://localhost:3000/api/data/writeInitialData",
+    "https://brs-agent.datamation.lk/api/data/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,7 +37,7 @@ async function write_initial_data(file_name: string, data: string) {
 }
 
 async function implement_edits(user_inputs: string, file_name: string) {
-  const response = await fetch("http://localhost:3000/api/generative/implement_edits", {
+  const response = await fetch("https://brs-agent.datamation.lk/api/generative/implement_edits", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_inputs, file_name }),
@@ -52,7 +52,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 }
 
 async function read_file(file_name: string) {
-  const response = await fetch(`http://localhost:3000/api/data/readFile?file_name=${file_name}`, {
+  const response = await fetch(`https://brs-agent.datamation.lk/api/data/readFile?file_name=${file_name}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });

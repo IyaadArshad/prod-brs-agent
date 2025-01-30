@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
   // get an overview
   try {
-    overview = await fetch('http://localhost:3000/api/generative/get_overview', {
+    overview = await fetch('https://brs-agent.datamation.lk/api/generative/get_overview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   // implement that overview
 
   try {
-    const implemented_overview = await fetch('http://localhost:3000/api/generative/implement_overview', {
+    const implemented_overview = await fetch('https://brs-agent.datamation.lk/api/generative/implement_overview', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
