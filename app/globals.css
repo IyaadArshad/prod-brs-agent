@@ -186,7 +186,5 @@ body {
 .chat-container {
   background-color: #1e1e1e; /* Dark background for chat */
   border-radius: 12px; /* Rounded corners */
-  margin: 16px; /* Margin around chat */
-  padding: 16px; /* Optional padding inside chat */
   overflow-y: auto; /* Enable vertical scrolling if needed */
 }
