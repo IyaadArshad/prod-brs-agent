@@ -234,9 +234,9 @@ const WordSpan = ({ word, index }: { word: string; index: number }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.1, delay: index * 0.04 }}
-      className="inline-block"
+      style={{ display: 'inline', letterSpacing: '-0.01em' }}
     >
-      {word}&nbsp;
+      {word}
     </motion.span>
   );
 };
@@ -333,17 +333,31 @@ function MessageComponent({
             }}
           />
         ) : (
-          <div 
-            className="markdown-body whitespace-pre-wrap prose prose-invert max-w-none"
-          >
+          <div className="markdown-body prose prose-invert max-w-none">
             {message.role === "assistant" ? (
-              <div>
-                {message.content.split(' ').map((word, index) => (
-                  <WordSpan key={index} word={word} index={index} />
-                ))}
-              </div>
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  lineHeight: "1.5",
+                  letterSpacing: "-0.01em"
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: parseMarkdown(message.content)
+                }}
+              />
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }} />
+              <div 
+                style={{ 
+                  whiteSpace: 'pre-wrap', 
+                  wordBreak: 'break-word',
+                  lineHeight: '1.5',
+                  letterSpacing: '-0.01em'
+                }}
+                dangerouslySetInnerHTML={{ 
+                  __html: parseMarkdown(message.content) 
+                }} 
+              />
             )}
           </div>
         )}
