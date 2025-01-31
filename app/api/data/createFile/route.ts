@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   return Response.json({
     success: "true",
     message: `**${fileName}** has been successfully created`,
-    systemMessage: `You've created an empty file called ${fileName}, you will need to remember this name for API requests using this file. To start with this file, you must first perform a writeInitialData to create the first version. any updates after that can use publishNewVersion`,
+    systemMessage: `You've created an empty file called ${fileName}, you will need to remember this name for API requests using this file. To start with this file, you must first perform a writeInitialData to create the first version. any updates after that can use implement_edits`,
     file_name: fileName,
   });
 }
