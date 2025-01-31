@@ -188,3 +188,8 @@ body {
   border-radius: 12px; /* Rounded corners */
   overflow-y: auto; /* Enable vertical scrolling if needed */
 }
+
+.chatty {
+  padding: 40px;
+  padding-left: 64px;
+}
