@@ -752,7 +752,19 @@ export default function ChatInterface() {
             switch (json.type) {
               case "function":
                 logVerbose("Function call started:", json.data);
-                functionCalls.push(json.data);
+                const fnName = json.data;
+                const fnParams = json.parameters;
+                
+                // Create readable function call description
+                let fnDescription = fnName;
+                if (fnParams) {
+                  if (fnParams.file_name) {
+                    fnDescription += ` for ${fnParams.file_name}`;
+                  }
+                  // Add any other parameter descriptions you want to show
+                }
+                
+                functionCalls.push(fnDescription);
                 
                 // Update message immediately with new function call
                 setMessages(prev => {
