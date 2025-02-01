@@ -67,6 +67,11 @@ async function read_file(file_name: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    // model 1 = gpt-4o-mini
+    // model 2 = gpt-4o
+    // model 2 = o3-mini
+
+    const model = body.model || 2;
     if (!body.messages) {
       return NextResponse.json({ error: "messages is required" }, { status: 400 });
     }
@@ -81,6 +86,20 @@ export async function POST(request: Request) {
     type Message =
       | { role: "system" | "user"; content: string }
       | { role: "function"; name: string; content: string };
+
+    let defaultModel;
+    let openModel;
+
+    if (model === 1) {
+      openModel = "gpt-4o-mini";
+    } else if (model === 2) {
+      openModel = "gpt-4o";
+    } else if (model === 3) {
+      openModel = "gpt-3.5-turbo";
+    } else {
+      openModel = "gpt-4o";
+      defaultModel = true;
+    }
 
     let conversation: Message[] = [
       {
@@ -133,7 +152,7 @@ export async function POST(request: Request) {
                   Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                  model: "gpt-4o-mini",
+                  model: `${openModel}`,
                   messages: conversation,
                   functions: [
                     {
@@ -275,7 +294,7 @@ export async function POST(request: Request) {
               // Send final "message" chunk
               controller.enqueue(
                 new TextEncoder().encode(
-                  `data: ${JSON.stringify({ type: "message", content: text })}\n\n`
+                  `data: ${JSON.stringify({ type: "message", content: text, openModel, model })}\n\n`
                 )
               );
               // Send end chunk
