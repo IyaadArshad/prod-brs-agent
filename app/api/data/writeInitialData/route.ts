@@ -49,8 +49,8 @@ export async function POST(request: Request) {
   if (recordData.latestVersion && recordData.latestVersion > 0) {
     return Response.json({
       success: "false",
-      message: `**${file_name}** is already initialized, please use publishNewVersion to create a new version`,
-      systemMessage: `File already has some versions. Use publishNewVersion instead.`,
+      message: `**${file_name}** is already initialized, please use implement_edits to create a new version`,
+      systemMessage: `File already has some versions. Use implement_edits instead.`,
       file_name,
     });
   }
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   return Response.json({
     success: "true",
     message: `**${file_name}** has been successfully initialized`,
-    systemMessage: `The first version is now v1. Use publishNewVersion to publish subsequent versions.`,
+    systemMessage: `The first version is now v1. Use implement_edits to publish subsequent versions.`,
     file_name,
   });
 }
