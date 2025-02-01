@@ -110,10 +110,11 @@ export async function POST(request: Request) {
           '1. Never display raw markdown file contents directly to users\n' +
           '2. When using implement_edits, pass the exact user message without modification\n' +
           '3. After implementing edits, summarize the changes made in natural language\n' +
-          '4. Do not read and display file contents back to users\n' +
+          '4. Do not read and display file contents back to users. You may summarize or list contents or screens of the document though.\n' +
           '5. Focus on facilitating the creation and modification of BRS documents\n' +
           '6. When calling a function involving a file, you must let the user know of the file name wrapped in <code></code> to make what file you are working with clear' +
           '7. Do not use underscores in file names, and do not use spaces.' +
+          '8. Whenever the user asks a question about a file that may have been updated, read the file again before answering.' +
         '8. Some screen names will have brackets after their name to indicate a screen where a user performs actions' +
       '9. You can use tables to display sample data and information. Make sure you use appropriate field headers'      },
       ...userMessages,
@@ -168,7 +169,7 @@ export async function POST(request: Request) {
                     },
                     {
                       name: "read_file",
-                      description: "Reads the contents of a file. Only use this for your reference and context. Do not display the contents of a file to a user.",
+                      description: "Reads the contents of a file. Only use this for your reference and context. Do not display the contents of a file to a user. Read the file whenever the user is asking a question about a file.",
                       parameters: {
                         type: "object",
                         required: ["file_name"],
