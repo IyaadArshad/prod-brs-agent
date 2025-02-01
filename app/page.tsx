@@ -361,14 +361,9 @@ function MessageComponent({
             )}
           </div>
         )}
-      </div>
-      <div
-        className={`opacity-0 group-hover:opacity-100 transition-opacity absolute ${
-          message.role === "user" ? "left-8" : "right-8"
-        }`}
-      >
-        {message.role === "assistant" ? (
-          <>
+        {message.role === "assistant" && (
+          <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Assistant management buttons (copy, regenerate) */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -405,8 +400,16 @@ function MessageComponent({
                 <TooltipContent>Regenerate response</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </>
-        ) : (
+          </div>
+        )}
+      </div>
+      {/* Removed previous absolute positioned management buttons */}
+      {message.role !== "assistant" && (
+        <div
+          className={`opacity-0 group-hover:opacity-100 transition-opacity absolute ${
+            message.role === "user" ? "left-8" : "right-8"
+          }`}
+        >
           <>
             <TooltipProvider>
               <Tooltip>
@@ -445,8 +448,8 @@ function MessageComponent({
               </Tooltip>
             </TooltipProvider>
           </>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
