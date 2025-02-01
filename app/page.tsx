@@ -275,13 +275,24 @@ const WordSpan = ({ word, index }: { word: string; index: number }) => {
     <motion.span
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.1, delay: index * 0.04 }}
+      // Updated transition for a smoother fade-in
+      transition={{ duration: 0.4, delay: index * 0.05, ease: "easeInOut" }}
       style={{ display: 'inline', letterSpacing: '-0.01em' }}
     >
       {word}
     </motion.span>
   );
 };
+
+// Add this helper function near the top of the file
+function groupWords(text: string, groupSize: number): string[] {
+  const words = text.split(' ');
+  const groups = [];
+  for (let i = 0; i < words.length; i += groupSize) {
+    groups.push(words.slice(i, i + groupSize).join(' '));
+  }
+  return groups;
+}
 
 function MessageComponent({
   message,
@@ -377,17 +388,17 @@ function MessageComponent({
         ) : (
           <div className="markdown-body prose prose-invert max-w-none">
             {message.role === "assistant" ? (
-              <div
-                style={{
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  lineHeight: "1.5",
-                  letterSpacing: "-0.01em"
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: parseMarkdown(message.content)
-                }}
-              />
+              <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.5', letterSpacing: '-0.01em' }}>
+                {/(?:\*\*|__|\*|_)/.test(message.content) ? (
+                  // Render full parsed markdown so bold/italic are preserved
+                  <span dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }} />
+                ) : (
+                  // Animate word groups if no markdown tokens are detected
+                  groupWords(message.content, 3).map((group, index) => (
+                    <WordSpan key={index} word={group + ' '} index={index} />
+                  ))
+                )}
+              </div>
             ) : (
               <div 
                 style={{ 
