@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JSONContent } from "@sergeysova/craft";
-import { StatusIndicator } from "@/components/indicator";
 import {
   SendHorizontal,
   Trash2,
@@ -30,6 +29,47 @@ import Cookies from 'js-cookie'; // Add this import
 import gravatarUrl from "gravatar-url";
 import { parseMarkdown } from "@/utils/markdownParser"; // Add this import
 import ReactDOMServer from "react-dom/server";
+import { Loader2 } from "lucide-react"
+
+interface StatusIndicatorProps {
+  status: "loading" | "done"
+  loadingText: string
+  doneText: string
+}
+
+function StatusIndicator({ status, loadingText, doneText }: StatusIndicatorProps) {
+  return (
+    <div
+      className={`flex function-call items-center gap-2 bg-[#2f2f2f] border border-[#44444] text-[#e4e4e7] px-3 py-2 
+      ${status === "done" ? "rounded-xl border border-[#444444]" : "rounded-full border border-[#444444]"}
+      relative overflow-hidden`}
+    >
+      <div className="relative z-10 flex items-center gap-2">
+        {status === "done" ? (
+          <>
+            <Check className="h-4 w-4 text-green-500" />
+            <span className="text-sm">{doneText}</span>
+          </>
+        ) : (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">{loadingText}</span>
+          </>
+        )}
+      </div>
+      <style jsx global>{`
+        @keyframes checkPop {
+          0% { transform: scale(0); opacity: 0; }
+          70% { transform: scale(1.2); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .check-pop {
+          animation: checkPop 0.4s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
 
 declare global {
   interface Window {
@@ -723,6 +763,7 @@ export default function ChatInterface() {
       const reader = response.body?.getReader();
       let currentMessage = "";
       let messageId = Date.now().toString();
+      let functionCalls: { description: string, status: "loading" | "done" }[] = [];
 
       // Create initial message container
       setMessages(prev => [
@@ -734,8 +775,6 @@ export default function ChatInterface() {
           timestamp: Date.now(),
         }
       ]);
-
-      var functionCalls: { description: string, status: "loading" | "done" }[] = [];
 
       while (true) {
         const { done, value } = (await reader?.read()) || {};
@@ -758,23 +797,25 @@ export default function ChatInterface() {
                 const fnParams = json.parameters;
                 let fnDescription = fnName;
                 if (fnParams && fnParams.file_name) {
-                  fnDescription += ` for <code>${fnParams.file_name}</code>`;
+                  fnDescription += ` for ${fnParams.file_name}`;
                 }
-                // Add a new function call with loading status
                 functionCalls.push({ description: fnDescription, status: "loading" });
                 
-                // Render individual StatusIndicator components for all function calls
-                const indicatorsHTML = functionCalls.map(call =>
-                  ReactDOMServer.renderToString(
-                    <StatusIndicator
-                      status={call.status}
-                      loadingText={`Processing ${call.description}...`}
-                      doneText={`Processed ${call.description}`}
-                    />
-                  )
-                ).join('');
+                // Update status indicators
+                const indicatorsHTML = ReactDOMServer.renderToString(
+                  <div className="flex flex-col gap-2">
+                    {functionCalls.map((call, index) => (
+                      <div key={index} className={index === functionCalls.length - 1 ? "mb-2" : ""}>
+                        <StatusIndicator
+                          status={call.status}
+                          loadingText={`Processing ${call.description}...`}
+                          doneText={`Processed ${call.description}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
                 
-                // Update the assistant message with the indicators above any ongoing content
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage?.id === messageId) {
@@ -790,19 +831,27 @@ export default function ChatInterface() {
                 });
                 break;
               }
+
               case "functionResult": {
-                // Update the latest function call's status to done
+                // Update the status of the latest function call to "done"
                 if (functionCalls.length > 0) {
                   functionCalls[functionCalls.length - 1].status = "done";
-                  const indicatorsHTML = functionCalls.map(call =>
-                    ReactDOMServer.renderToString(
-                      <StatusIndicator
-                        status={call.status}
-                        loadingText={`Processing ${call.description}...`}
-                        doneText={`Processed ${call.description}`}
-                      />
-                    )
-                  ).join('');
+                  
+                  // Re-render all indicators with updated status
+                  const indicatorsHTML = ReactDOMServer.renderToString(
+                    <div className="flex flex-col gap-2">
+                      {functionCalls.map((call, index) => (
+                        <div key={index} className={index === functionCalls.length - 1 ? "mb-16" : ""}>
+                          <StatusIndicator
+                            status={call.status}
+                            loadingText={`Processing ${call.description}...`}
+                            doneText={`Processed ${call.description}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  );
+
                   setMessages(prev => {
                     const lastMessage = prev[prev.length - 1];
                     if (lastMessage?.id === messageId) {
@@ -817,13 +866,30 @@ export default function ChatInterface() {
                     return prev;
                   });
                 }
-                // Optionally process the function result further here...
                 break;
               }
-              case "message":
+
+              case "message": {
+                // Keep indicators visible while streaming message content
                 const newWords = json.content.split(' ');
                 for (let word of newWords) {
                   currentMessage += (currentMessage ? ' ' : '') + word;
+                  const indicatorsHTML = functionCalls.length > 0 
+                    ? ReactDOMServer.renderToString(
+                        <div className="flex flex-col gap-2">
+                          {functionCalls.map((call, index) => (
+                            <div key={index} className={index === functionCalls.length - 1 ? "mb-16" : ""}>
+                              <StatusIndicator
+                                status={call.status}
+                                loadingText={`Processing ${call.description}...`}
+                                doneText={`Processed ${call.description}`}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    : '';
+                  
                   setMessages(prev => {
                     const lastMessage = prev[prev.length - 1];
                     if (lastMessage?.id === messageId) {
@@ -831,13 +897,7 @@ export default function ChatInterface() {
                         ...prev.slice(0, -1),
                         {
                           ...lastMessage,
-                          content: `${functionCalls.length > 0 ? 
-                            `<div class="mb-4 p-2 bg-[#2f2f2f] rounded">
-                              ${functionCalls.map(fn => 
-                                `<p class="text-sm text-gray-400">Function called: ${fn}</p>`
-                              ).join('')}
-                             </div>` : 
-                            ''}${currentMessage}`
+                          content: `${indicatorsHTML}${currentMessage}`
                         }
                       ];
                     }
@@ -845,6 +905,7 @@ export default function ChatInterface() {
                   });
                 }
                 break;
+              }
 
               case "verbose":
                 logVerbose("Verbose log:", json.data);
