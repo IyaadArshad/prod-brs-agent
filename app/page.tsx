@@ -192,7 +192,7 @@ const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onSelect, filter, spl
       {isOpen && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.15 }}
           className="absolute max-w-4xl bottom-full left-0 w-full mb-2 bg-[#1E1E1E]/80 backdrop-blur-sm border border-[#383838] rounded-lg shadow-lg overflow-hidden"
@@ -273,7 +273,7 @@ function MessageComponent({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
       transition={{ duration: 0.3 }}
       className={`group flex items-start gap-4 chatty px-24 py-5 hover:bg-[#2A2A2A] relative ${
@@ -721,6 +721,18 @@ export default function ChatInterface() {
       const reader = response.body?.getReader();
       let currentMessage = "";
       let messageId = Date.now().toString();
+      let functionCalls: string[] = [];
+
+      // Create initial message container
+      setMessages(prev => [
+        ...prev,
+        {
+          id: messageId,
+          content: '',
+          role: "assistant",
+          timestamp: Date.now(),
+        }
+      ]);
 
       while (true) {
         const { done, value } = (await reader?.read()) || {};
@@ -735,42 +747,59 @@ export default function ChatInterface() {
             const jsonStr = line.replace('data: ', '');
             const json = JSON.parse(jsonStr);
             
-            // Add verbose logging
             logVerbose('Stream chunk:', json);
 
             switch (json.type) {
               case "function":
                 logVerbose("Function call started:", json.data);
+                functionCalls.push(json.data);
+                
+                // Update message immediately with new function call
+                setMessages(prev => {
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage?.id === messageId) {
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        ...lastMessage,
+                        content: `<div class="mb-4 p-2 bg-[#2f2f2f] rounded">
+                          ${functionCalls.map(fn => 
+                            `<p class="text-sm text-gray-400">Function called: ${fn}</p>`
+                          ).join('')}
+                        </div>${currentMessage}`
+                      }
+                    ];
+                  }
+                  return prev;
+                });
                 break;
-              case "functionResult":
-                logVerbose("Function call result:", json.data);
-                break;
+
               case "message":
-                // Split the new content into words and add them one by one
                 const newWords = json.content.split(' ');
                 for (let word of newWords) {
                   currentMessage += (currentMessage ? ' ' : '') + word;
-                  setMessages((prev) => {
+                  setMessages(prev => {
                     const lastMessage = prev[prev.length - 1];
                     if (lastMessage?.id === messageId) {
                       return [
                         ...prev.slice(0, -1),
-                        { ...lastMessage, content: currentMessage }
-                      ];
-                    } else {
-                      return [
-                        ...prev,
                         {
-                          id: messageId,
-                          content: currentMessage,
-                          role: "assistant",
-                          timestamp: Date.now(),
+                          ...lastMessage,
+                          content: `${functionCalls.length > 0 ? 
+                            `<div class="mb-4 p-2 bg-[#2f2f2f] rounded">
+                              ${functionCalls.map(fn => 
+                                `<p class="text-sm text-gray-400">Function called: ${fn}</p>`
+                              ).join('')}
+                             </div>` : 
+                            ''}${currentMessage}`
                         }
                       ];
                     }
+                    return prev;
                   });
                 }
                 break;
+
               case "verbose":
                 logVerbose("Verbose log:", json.data);
                 break;
