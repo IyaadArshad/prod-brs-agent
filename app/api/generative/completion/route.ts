@@ -244,7 +244,11 @@ export async function POST(request: Request) {
               // Send "function" chunk
               controller.enqueue(
                 new TextEncoder().encode(
-                  `data: ${JSON.stringify({ type: "function", data: name })}\n\n`
+                  `data: ${JSON.stringify({ 
+                    type: "function", 
+                    data: name,
+                    parameters: functionArgs // Include the function parameters
+                  })}\n\n`
                 )
               );
 
