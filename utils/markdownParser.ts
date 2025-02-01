@@ -1,4 +1,15 @@
+/**
+ * Preprocess markdown to remove line breaks after bullet markers.
+ * It converts patterns like "-\n   " into "- ".
+ */
+function preprocessMarkdown(input: string): string {
+  return input.replace(/(^|\n)([\*\-\+])\n\s*/g, '$1$2 ');
+}
+
 export function parseMarkdown(text: string): string {
+  // Preprocess markdown to remove unwanted line breaks
+  text = preprocessMarkdown(text);
+
   // Normalize newlines
   text = text.replace(/\\n/g, '\n');
   text = text.replace(/\r\n/g, '\n');
@@ -51,6 +62,9 @@ export function parseMarkdown(text: string): string {
   // Paragraphs
   text = text.replace(/\n\n+/g, '</p><p>');
   text = text.replace(/\n/g, '<br/>');
+
+  // Remove line breaks immediately after bullet list
+  text = text.replace(/<\/ul>(<br\/>)+/g, '</ul>');
 
   // Wrap in paragraph if not already wrapped
   if (!text.startsWith('<')) {
