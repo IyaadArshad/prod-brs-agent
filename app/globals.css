@@ -223,6 +223,11 @@ body {
   margin-bottom: -32px;
 }
 
+/* Override first list item margin */
+.markdown-body li:first-child {
+  margin-bottom: -32px;
+}
+
 .function-call {
   color: #cfcfcf;
   border-color:#444444;
