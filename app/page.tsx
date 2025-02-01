@@ -889,7 +889,7 @@ export default function ChatInterface() {
                     ? ReactDOMServer.renderToString(
                         <div className="flex flex-col gap-2">
                           {functionCalls.map((call, index) => (
-                            <div key={index} className={index === functionCalls.length - 1 ? "mb-16" : ""}>
+                            <div key={index} className={index === functionCalls.length - 1 ? "mb-4" : ""}>
                               <StatusIndicator
                                 status={call.status}
                                 loadingText={`Processing ${call.description}...`}
