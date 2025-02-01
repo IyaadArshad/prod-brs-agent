@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JSONContent } from "@sergeysova/craft";
+import { StatusIndicator } from "@/components/indicator";
 import {
   SendHorizontal,
   Trash2,
@@ -28,6 +29,7 @@ import {
 import Cookies from 'js-cookie'; // Add this import
 import gravatarUrl from "gravatar-url";
 import { parseMarkdown } from "@/utils/markdownParser"; // Add this import
+import ReactDOMServer from "react-dom/server";
 
 declare global {
   interface Window {
@@ -721,7 +723,6 @@ export default function ChatInterface() {
       const reader = response.body?.getReader();
       let currentMessage = "";
       let messageId = Date.now().toString();
-      let functionCalls: string[] = [];
 
       // Create initial message container
       setMessages(prev => [
@@ -733,6 +734,8 @@ export default function ChatInterface() {
           timestamp: Date.now(),
         }
       ]);
+
+      var functionCalls: { description: string, status: "loading" | "done" }[] = [];
 
       while (true) {
         const { done, value } = (await reader?.read()) || {};
@@ -750,23 +753,28 @@ export default function ChatInterface() {
             logVerbose('Stream chunk:', json);
 
             switch (json.type) {
-              case "function":
-                logVerbose("Function call started:", json.data);
+              case "function": {
                 const fnName = json.data;
                 const fnParams = json.parameters;
-                
-                // Create readable function call description
                 let fnDescription = fnName;
-                if (fnParams) {
-                  if (fnParams.file_name) {
-                    fnDescription += ` for ${fnParams.file_name}`;
-                  }
-                  // Add any other parameter descriptions you want to show
+                if (fnParams && fnParams.file_name) {
+                  fnDescription += ` for <code>${fnParams.file_name}</code>`;
                 }
+                // Add a new function call with loading status
+                functionCalls.push({ description: fnDescription, status: "loading" });
                 
-                functionCalls.push(fnDescription);
+                // Render individual StatusIndicator components for all function calls
+                const indicatorsHTML = functionCalls.map(call =>
+                  ReactDOMServer.renderToString(
+                    <StatusIndicator
+                      status={call.status}
+                      loadingText={`Processing ${call.description}...`}
+                      doneText={`Processed ${call.description}`}
+                    />
+                  )
+                ).join('');
                 
-                // Update message immediately with new function call
+                // Update the assistant message with the indicators above any ongoing content
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage?.id === messageId) {
@@ -774,18 +782,44 @@ export default function ChatInterface() {
                       ...prev.slice(0, -1),
                       {
                         ...lastMessage,
-                        content: `<div class="mb-4 p-2 bg-[#2f2f2f] rounded">
-                          ${functionCalls.map(fn => 
-                            `<p class="text-sm text-gray-400">Function called: ${fn}</p>`
-                          ).join('')}
-                        </div>${currentMessage}`
+                        content: `${indicatorsHTML}${currentMessage}`
                       }
                     ];
                   }
                   return prev;
                 });
                 break;
-
+              }
+              case "functionResult": {
+                // Update the latest function call's status to done
+                if (functionCalls.length > 0) {
+                  functionCalls[functionCalls.length - 1].status = "done";
+                  const indicatorsHTML = functionCalls.map(call =>
+                    ReactDOMServer.renderToString(
+                      <StatusIndicator
+                        status={call.status}
+                        loadingText={`Processing ${call.description}...`}
+                        doneText={`Processed ${call.description}`}
+                      />
+                    )
+                  ).join('');
+                  setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage?.id === messageId) {
+                      return [
+                        ...prev.slice(0, -1),
+                        {
+                          ...lastMessage,
+                          content: `${indicatorsHTML}${currentMessage}`
+                        }
+                      ];
+                    }
+                    return prev;
+                  });
+                }
+                // Optionally process the function result further here...
+                break;
+              }
               case "message":
                 const newWords = json.content.split(' ');
                 for (let word of newWords) {
