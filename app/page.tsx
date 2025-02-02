@@ -744,8 +744,25 @@ export default function ChatInterface() {
 
 // Add this helper function before fetchAIResponse
 function stripFunctionCallDivs(content: string): string {
-  // Remove div elements with class "function-call" and their container
-  return content.replace(/<div class="flex flex-col gap-2">[^]*?<\/div>([^]*)/, '$1').trim();
+  let functionCallText = '';
+  
+  // Extract text from all function call divs
+  const regex = /<div class="flex function-call[^>]*>.*?<span[^>]*>(.*?)<\/span>.*?<\/div>/g;
+  let match;
+  
+  // Replace function call divs but collect their text content
+  content = content.replace(/<div class="flex flex-col gap-2">[\s\S]*?<\/div>/g, (match) => {
+    const spanMatches = match.match(/<span class="[^"]*text-sm[^"]*">([\s\S]*?)<\/span>/g) || [];
+    const texts = spanMatches.map(span => {
+      const textMatch = span.match(/<span[^>]*>([\s\S]*?)<\/span>/);
+      return textMatch ? textMatch[1] : '';
+    });
+    functionCallText += texts.join('\n') + '\n';
+    return '';
+  });
+
+  // Combine extracted function call text with remaining content
+  return (functionCallText + content).trim();
 }
 
 const fetchAIResponse = async (userMessage: Message) => {
