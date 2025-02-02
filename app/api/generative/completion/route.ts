@@ -112,7 +112,7 @@ export async function POST(request: Request) {
           '3. After implementing edits, summarize the changes made in natural language\n' +
           '4. Do not read and display file contents back to users. You may summarize or list contents or screens of the document though.\n' +
           '5. Focus on facilitating the creation and modification of BRS documents\n' +
-          '6. When calling a function involving a file, you must let the user know of the file name wrapped in <code></code> to make what file you are working with clear' +
+          '6. When calling a function involving a file, you must let the user know of the file name wrapped in the markdown code to make what file you are working with clear' +
           '7. Do not use underscores in file names, and do not use spaces.' +
           '8. Whenever the user asks a question about a file that may have been updated, read the file again before answering.' +
         '8. Some screen names will have brackets after their name to indicate a screen where a user performs actions' +
