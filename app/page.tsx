@@ -754,7 +754,7 @@ export default function ChatInterface() {
         },
         body: JSON.stringify({
           messages: [
-            ...messages.map((msg) => ({
+            ...messages.filter(msg => !msg.content.startsWith("/")).map((msg) => ({
               role: msg.role,
               content: msg.content,
             })),
