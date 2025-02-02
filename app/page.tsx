@@ -1314,9 +1314,9 @@ export default function ChatInterface() {
                       handleSendMessage();
                     }
                     }}
-                    className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-shadow duration-300 ease-in-out"
                     placeholder="Message ChatGPT"
-                  />
+                    />
                   {message.startsWith("/") && (
                     <CommandMenu
                     isOpen={true}
