@@ -742,81 +742,125 @@ export default function ChatInterface() {
     }
   };
 
-  const fetchAIResponse = async (userMessage: Message) => {
-    try {
-      setIsStreaming(true);
-      abortControllerRef.current = new AbortController();
-      
-      const response = await fetch("/api/generative/completion", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [
-            ...messages.filter(msg => !msg.content.startsWith("/")).map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-            {
-              role: userMessage.role,
-              content: userMessage.content,
-            },
-          ],
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+// Add this helper function before fetchAIResponse
+function stripFunctionCallDivs(content: string): string {
+  // Remove div elements with class "function-call" and their container
+  return content.replace(/<div class="flex flex-col gap-2">[^]*?<\/div>([^]*)/, '$1').trim();
+}
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+const fetchAIResponse = async (userMessage: Message) => {
+  try {
+    setIsStreaming(true);
+    abortControllerRef.current = new AbortController();
+    
+    const cleanedMessages = messages.filter(msg => !msg.content.startsWith("/")).map((msg) => ({
+      role: msg.role,
+      content: stripFunctionCallDivs(msg.content)
+    }));
+    
+    const response = await fetch("/api/generative/completion", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: [
+          ...cleanedMessages,
+          {
+            role: userMessage.role,
+            content: userMessage.content,
+          },
+        ],
+      }),
+      signal: abortControllerRef.current.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const reader = response.body?.getReader();
+    let currentMessage = "";
+    let messageId = Date.now().toString();
+    let functionCalls: { description: string, status: "loading" | "done" }[] = [];
+
+    // Create initial message container
+    setMessages(prev => [
+      ...prev,
+      {
+        id: messageId,
+        content: '',
+        role: "assistant",
+        timestamp: Date.now(),
       }
+    ]);
 
-      const reader = response.body?.getReader();
-      let currentMessage = "";
-      let messageId = Date.now().toString();
-      let functionCalls: { description: string, status: "loading" | "done" }[] = [];
+    while (true) {
+      const { done, value } = (await reader?.read()) || {};
+      if (done) break;
 
-      // Create initial message container
-      setMessages(prev => [
-        ...prev,
-        {
-          id: messageId,
-          content: '',
-          role: "assistant",
-          timestamp: Date.now(),
-        }
-      ]);
+      const chunk = new TextDecoder().decode(value);
+      const lines = chunk.split('\n');
+      
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const jsonStr = line.replace('data: ', '');
+          const json = JSON.parse(jsonStr);
+          
+          logVerbose('Stream chunk:', json);
 
-      while (true) {
-        const { done, value } = (await reader?.read()) || {};
-        if (done) break;
-
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
-        
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const jsonStr = line.replace('data: ', '');
-            const json = JSON.parse(jsonStr);
-            
-            logVerbose('Stream chunk:', json);
-
-            switch (json.type) {
-              case "function": {
-                const fnName = json.data;
-                const fnParams = json.parameters;
-                let fnDescription = fnName;
-                if (fnParams && fnParams.file_name) {
-                  fnDescription += ` for ${fnParams.file_name}`;
+          switch (json.type) {
+            case "function": {
+              const fnName = json.data;
+              const fnParams = json.parameters;
+              let fnDescription = fnName;
+              if (fnParams && fnParams.file_name) {
+                fnDescription += ` for ${fnParams.file_name}`;
+              }
+              functionCalls.push({ description: fnDescription, status: "loading" });
+              
+              // Update status indicators
+              const indicatorsHTML = ReactDOMServer.renderToString(
+                <div className="flex flex-col gap-2">
+                  {functionCalls.map((call, index) => (
+                    <div key={index} className={index === functionCalls.length - 1 ? "bottom-function" : ""}>
+                      <StatusIndicator
+                        status={call.status}
+                        loadingText={`Processing ${call.description}...`}
+                        doneText={`Processed ${call.description}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+              
+              setMessages(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage?.id === messageId) {
+                  return [
+                    ...prev.slice(0, -1),
+                    {
+                      ...lastMessage,
+                      content: `${indicatorsHTML}${currentMessage}`
+                    }
+                  ];
                 }
-                functionCalls.push({ description: fnDescription, status: "loading" });
+                return prev;
+              });
+              break;
+            }
+
+            case "functionResult": {
+              // Update the status of the latest function call to "done"
+              if (functionCalls.length > 0) {
+                functionCalls[functionCalls.length - 1].status = "done";
                 
-                // Update status indicators
+                // Re-render all indicators with updated status
                 const indicatorsHTML = ReactDOMServer.renderToString(
                   <div className="flex flex-col gap-2">
                     {functionCalls.map((call, index) => (
-                      <div key={index} className={index === functionCalls.length - 1 ? "bottom-function" : ""}>
+                      <div key={index} className={index === functionCalls.length - 1 ? "mb-16" : ""}>
                         <StatusIndicator
                           status={call.status}
                           loadingText={`Processing ${call.description}...`}
@@ -826,6 +870,44 @@ export default function ChatInterface() {
                     ))}
                   </div>
                 );
+
+                setMessages(prev => {
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage?.id === messageId) {
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        ...lastMessage,
+                        content: `${indicatorsHTML}${currentMessage}`
+                      }
+                    ];
+                  }
+                  return prev;
+                });
+              }
+              break;
+            }
+
+            case "message": {
+              // Keep indicators visible while streaming message content
+              const newWords = json.content.split(' ');
+              for (let word of newWords) {
+                currentMessage += (currentMessage ? ' ' : '') + word;
+                const indicatorsHTML = functionCalls.length > 0 
+                  ? ReactDOMServer.renderToString(
+                      <div className="flex flex-col gap-2">
+                        {functionCalls.map((call, index) => (
+                          <div key={index} className={index === functionCalls.length - 1 ? "mb-4" : ""}>
+                            <StatusIndicator
+                              status={call.status}
+                              loadingText={`Processing ${call.description}...`}
+                              doneText={`Processed ${call.description}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  : '';
                 
                 setMessages(prev => {
                   const lastMessage = prev[prev.length - 1];
@@ -840,126 +922,52 @@ export default function ChatInterface() {
                   }
                   return prev;
                 });
-                break;
               }
-
-              case "functionResult": {
-                // Update the status of the latest function call to "done"
-                if (functionCalls.length > 0) {
-                  functionCalls[functionCalls.length - 1].status = "done";
-                  
-                  // Re-render all indicators with updated status
-                  const indicatorsHTML = ReactDOMServer.renderToString(
-                    <div className="flex flex-col gap-2">
-                      {functionCalls.map((call, index) => (
-                        <div key={index} className={index === functionCalls.length - 1 ? "mb-16" : ""}>
-                          <StatusIndicator
-                            status={call.status}
-                            loadingText={`Processing ${call.description}...`}
-                            doneText={`Processed ${call.description}`}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  );
-
-                  setMessages(prev => {
-                    const lastMessage = prev[prev.length - 1];
-                    if (lastMessage?.id === messageId) {
-                      return [
-                        ...prev.slice(0, -1),
-                        {
-                          ...lastMessage,
-                          content: `${indicatorsHTML}${currentMessage}`
-                        }
-                      ];
-                    }
-                    return prev;
-                  });
-                }
-                break;
-              }
-
-              case "message": {
-                // Keep indicators visible while streaming message content
-                const newWords = json.content.split(' ');
-                for (let word of newWords) {
-                  currentMessage += (currentMessage ? ' ' : '') + word;
-                  const indicatorsHTML = functionCalls.length > 0 
-                    ? ReactDOMServer.renderToString(
-                        <div className="flex flex-col gap-2">
-                          {functionCalls.map((call, index) => (
-                            <div key={index} className={index === functionCalls.length - 1 ? "mb-4" : ""}>
-                              <StatusIndicator
-                                status={call.status}
-                                loadingText={`Processing ${call.description}...`}
-                                doneText={`Processed ${call.description}`}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    : '';
-                  
-                  setMessages(prev => {
-                    const lastMessage = prev[prev.length - 1];
-                    if (lastMessage?.id === messageId) {
-                      return [
-                        ...prev.slice(0, -1),
-                        {
-                          ...lastMessage,
-                          content: `${indicatorsHTML}${currentMessage}`
-                        }
-                      ];
-                    }
-                    return prev;
-                  });
-                }
-                break;
-              }
-
-              case "verbose":
-                logVerbose("Verbose log:", json.data);
-                break;
-              case "end":
-                logVerbose("Stream ended");
-                break;
+              break;
             }
-          } catch (e) {
-            console.error("Error parsing chunk:", e);
+
+            case "verbose":
+              logVerbose("Verbose log:", json.data);
+              break;
+            case "end":
+              logVerbose("Stream ended");
+              break;
           }
+        } catch (e) {
+          console.error("Error parsing chunk:", e);
         }
       }
-
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage?.role === "assistant") {
-            return [
-              ...prev.slice(0, -1),
-              { ...lastMessage, content: lastMessage.content + ' [stopped]' }
-            ];
-          }
-          return prev;
-        });
-      } else {
-        console.error("Error fetching AI response:", error);
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            content: "An error occurred while fetching the response.",
-            role: "assistant",
-            timestamp: Date.now(),
-          },
-        ]);
-      }
-    } finally {
-      setIsStreaming(false);
-      abortControllerRef.current = null;
     }
-  };
+
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      setMessages(prev => {
+        const lastMessage = prev[prev.length - 1];
+        if (lastMessage?.role === "assistant") {
+          return [
+            ...prev.slice(0, -1),
+            { ...lastMessage, content: lastMessage.content + ' [stopped]' }
+          ];
+        }
+        return prev;
+      });
+    } else {
+      console.error("Error fetching AI response:", error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: "An error occurred while fetching the response.",
+          role: "assistant",
+          timestamp: Date.now(),
+        },
+      ]);
+    }
+  } finally {
+    setIsStreaming(false);
+    abortControllerRef.current = null;
+  }
+};
 
   const handleStopRequest = () => {
     if (abortControllerRef.current) {
