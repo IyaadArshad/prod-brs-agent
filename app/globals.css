@@ -162,12 +162,6 @@ body {
   border-style: none;
 }
 
-/* Optimize h-screen padding */
-.h-screen {
-  padding-top: 2px;
-  margin: 0;
-}
-
 body {
   background-color: #07090f;
 }
@@ -180,13 +174,6 @@ body {
 /* Remove redundant styles */
 .tiptap {
   color: #fff !important;
-}
-
-/* Style chat container with rounded corners and margin */
-.chat-container {
-  background-color: #1e1e1e; /* Dark background for chat */
-  border-radius: 12px; /* Rounded corners */
-  overflow-y: auto; /* Enable vertical scrolling if needed */
 }
 
 .chatty {
