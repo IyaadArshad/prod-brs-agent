@@ -17,6 +17,8 @@ import {
   HelpCircle,
   Eye,
   FileText,
+  MoreVertical,
+  LucideMoreVertical, // Added import for three-dots icon
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -1100,10 +1102,10 @@ const fetchAIResponse = async (userMessage: Message) => {
         >
           <div className="">
             {/* Document header bar */}
-            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+            <div className="p-4 border-b border-gray-500 flex items-center justify-between">  {/* Changed border-gray-700 to border-gray-500 */}
               <span className="text-white font-extralight text-sm">Document Name</span>
               <button className="text-white focus:outline-none">
-                <span className="text-2xl">⋮</span>
+                <LucideMoreVertical className="w-4 h-4" /> {/* Replaced text with icon and reduced size */}
               </button>
             </div>
           </div>
