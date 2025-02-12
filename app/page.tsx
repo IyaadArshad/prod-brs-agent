@@ -706,6 +706,8 @@ export default function ChatInterface() {
       } else { // create file and return output
         const response = await createFile(parts[1]);
         let currentMessage = "";
+        // Add an initial delay for fade in effect
+        await new Promise((resolve) => setTimeout(resolve, 300));
         const words = response.split(' ');
         for (let i = 0; i < words.length; i++) {
           await new Promise((resolve) => setTimeout(resolve, 95));
@@ -1097,14 +1099,13 @@ const fetchAIResponse = async (userMessage: Message) => {
           style={{ flexBasis: `${editorWidth}%`, backgroundColor: '#1e1e1e' }}
         >
           <div className="">
-            { /* <CraftEditor 
-              content={content} 
-              onUpdate={(editor: { getJSON: () => JSONContent }) => {
-                const newContent = editor.getJSON();
-                setContent(newContent);
-              }}
-              className="white-text"
-            /> */}
+            {/* Document header bar */}
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <span className="text-white font-extralight text-sm">Document Name</span>
+              <button className="text-white focus:outline-none">
+                <span className="text-2xl">⋮</span>
+              </button>
+            </div>
           </div>
         </div>
         <div
