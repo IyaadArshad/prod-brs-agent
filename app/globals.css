@@ -8,7 +8,6 @@
 /* Consolidate body styles */
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #000000; /* Changed to black */
   color: var(--foreground);
   overflow: hidden; /* Hide overflow to prevent double scrollbars */
 }
@@ -17,7 +16,6 @@ body {
 @layer base {
   :root {
     --background: #ffffff;
-    --foreground: #000000;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
@@ -163,7 +161,7 @@ body {
 }
 
 body {
-  background-color: #07090f;
+  background-color: #212121;
 }
 
 /* Refactor send-button */

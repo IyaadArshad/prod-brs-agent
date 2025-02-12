@@ -30,7 +30,7 @@ export default function RootLayout({
         <meta charSet="UTF-8" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-black overflow-hidden`} /* Added h-full and overflow-hidden */
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-hidden`} /* Added h-full and overflow-hidden */
       >
         {children}
       </body>

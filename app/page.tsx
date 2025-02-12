@@ -1133,7 +1133,7 @@ const fetchAIResponse = async (userMessage: Message) => {
 
                   <div className="">
                     <div className="max-w-3xl mx-auto p-4">
-                        <div className="sticky bottom-0 bg-[#1E1E1E] p-4">
+                        <div className="sticky bottom-0 p-4">
                         <Input
                           value={message}
                           onChange={(e) => {
@@ -1357,7 +1357,7 @@ const fetchAIResponse = async (userMessage: Message) => {
 
                   <div className="">
                     <div className="max-w-3xl mx-auto p-4">
-                        <div className="sticky bottom-0 bg-[#1E1E1E] p-4">
+                        <div className="sticky bottom-0 p-4">
                         <Input
                           value={message}
                           onChange={(e) => {
@@ -1421,7 +1421,7 @@ const fetchAIResponse = async (userMessage: Message) => {
         )}
       </div>
     ) : (
-      <div className="h-screen chat-container screen bg-[#000000] text-white flex flex-col overflow-hidden"> {/* Changed to black background */}
+      <div className="h-screen chat-container screen text-white flex flex-col overflow-hidden"> {/* Changed to black background */}
         {/* The entire chat interface goes here */}
         {!isConversationStarted ? (
           <main className="flex-1 flex flex-col items-center justify-center p-4">
@@ -1502,7 +1502,7 @@ const fetchAIResponse = async (userMessage: Message) => {
 
             <div className="">
               <div className="max-w-5xl mx-auto p-4">
-                  <div className="sticky bottom-0 bg-[#1E1E1E] p-4">
+                  <div className="sticky bottom-0 p-4">
                   <Input
                     value={message}
                     onChange={(e) => {
