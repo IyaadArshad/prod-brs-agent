@@ -8,12 +8,8 @@ export function StatusIndicator({
 }: StatusIndicatorProps) {
   return (
     <div
-      className={`flex function-call items-center gap-2 bg-[#2f2f2f] border border-[#44444] text-[#e4e4e7] px-3 py-2 
-        ${
-          status === "done"
-            ? "rounded-xl border border-[#444444]"
-            : "rounded-full border border-[#444444]"
-        }
+      className={`flex function-call items-center gap-2 bg-[#2f2f2f] border border-[#444444] text-[#e4e4e7] px-3 py-2 
+        ${status === "done" ? "rounded-xl" : "rounded-full"}
         relative overflow-hidden`}
     >
       <div className="relative z-10 flex items-center gap-2">
