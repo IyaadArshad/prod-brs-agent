@@ -740,13 +740,18 @@ export default function ChatInterface() {
               <>
                 <div className="flex-1 overflow-y-auto">
                   <AnimatePresence>
-                    {messages.map((msg) => (
+                    {messages.map((msg, index) => (
                       <MessageComponent
                         key={msg.id}
                         message={msg}
                         onEdit={handleEditMessage}
                         onDelete={handleDeleteMessage}
                         onRegenerate={handleRegenerateMessage}
+                        streaming={
+                          isStreaming &&
+                          msg.role === "assistant" &&
+                          index === messages.length - 1
+                        }
                       />
                     ))}
                   </AnimatePresence>
@@ -986,13 +991,18 @@ export default function ChatInterface() {
               <>
                 <div className="flex-1 overflow-y-auto">
                   <AnimatePresence>
-                    {messages.map((msg) => (
+                    {messages.map((msg, index) => (
                       <MessageComponent
                         key={msg.id}
                         message={msg}
                         onEdit={handleEditMessage}
                         onDelete={handleDeleteMessage}
                         onRegenerate={handleRegenerateMessage}
+                        streaming={
+                          isStreaming &&
+                          msg.role === "assistant" &&
+                          index === messages.length - 1
+                        }
                       />
                     ))}
                   </AnimatePresence>
@@ -1143,13 +1153,18 @@ export default function ChatInterface() {
         <>
           <div className="flex-1 overflow-y-auto">
             <AnimatePresence>
-              {messages.map((msg) => (
+              {messages.map((msg, index) => (
                 <MessageComponent
                   key={msg.id}
                   message={msg}
                   onEdit={handleEditMessage}
                   onDelete={handleDeleteMessage}
                   onRegenerate={handleRegenerateMessage}
+                  streaming={
+                    isStreaming &&
+                    msg.role === "assistant" &&
+                    index === messages.length - 1
+                  }
                 />
               ))}
             </AnimatePresence>

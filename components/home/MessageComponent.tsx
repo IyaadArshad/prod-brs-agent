@@ -6,22 +6,33 @@ import { parseMarkdown } from "@/utils/markdownParser";
 import { groupWords } from "./camelCased/groupWords";
 import { WordSpan } from "./WordSpan";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+  Copy,
+  RotateCcw,
+  ThumbsUp,
+  ThumbsDown,
+  MoreVertical,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
 
 export function MessageComponent({
   message,
   onEdit,
   onDelete,
   onRegenerate,
+  streaming = false,
 }: MessageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
   const [isCopied, setIsCopied] = useState(false);
+  const [avatar, setAvatar] = useState("");
+
+  useEffect(() => {
+    const gravatarUrl = Cookies.get("gravatar");
+    if (gravatarUrl) {
+      setAvatar(gravatarUrl);
+    }
+  }, []);
 
   useEffect(() => {
     if (isCopied) {
@@ -30,9 +41,13 @@ export function MessageComponent({
     }
   }, [isCopied]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(message.content);
-    setIsCopied(true);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      toast.success("Copied to clipboard");
+    } catch (err) {
+      toast.error("Failed to copy");
+    }
   };
 
   const handleEdit = () => {
@@ -144,35 +159,51 @@ export function MessageComponent({
             )}
           </div>
         )}
-        {message.role === "assistant" && (
-          <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <MoreVertical className="w-4 h-4 text-white" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[#1E1E1E] border border-[#383838] rounded-lg shadow-lg">
-                <DropdownMenuItem onClick={handleCopy}>Copy</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onRegenerate?.(message.id)}>
-                  Regenerate
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        {message.role === "assistant" && !streaming && (
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRegenerate?.(message.id)}
+              className="h-8 w-8 text-gray-400 hover:text-white"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopy}
+              className="h-8 w-8 text-gray-400 hover:text-white"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-400 hover:text-white"
+            >
+              <ThumbsUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-400 hover:text-white"
+            >
+              <ThumbsDown className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>
-      {/* Removed previous absolute positioned management buttons */}
       {message.role !== "assistant" && (
         <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity top-2 right-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <MoreVertical className="w-4 h-4 text-white" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#1E1E1E] border border-[#383838] rounded-lg shadow-lg">
-              <DropdownMenuItem onClick={() => onDelete?.(message.id)}>
-                Delete message
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete?.(message.id)}
+            className="h-8 w-8 text-gray-400 hover:text-white"
+          >
+            <MoreVertical className="w-4 h-4 text-white" />
+          </Button>
         </div>
       )}
     </motion.div>
