@@ -1,3 +1,6 @@
+import { StatusIndicatorProps } from "@/types/types"
+import { Check, Loader2 } from "lucide-react"
+
 export function StatusIndicator({ status, loadingText, doneText }: StatusIndicatorProps) {
     return (
       <div
