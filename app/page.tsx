@@ -732,7 +732,23 @@ export default function ChatInterface() {
         }
       }
     } else if (newMessage.content.startsWith("/open")) {
-      setSplitView(true);
+      const parts = newMessage.content.split(" ");
+      let assistantMsg = "";
+      if (parts.length === 2 && (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))) {
+        setSplitView(true);
+        assistantMsg = `Opening file: ${parts[1]}`;
+      } else {
+        assistantMsg = "Invalid /open command format. Provide one file name ending with .md or .pdf";
+      }
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: assistantMsg,
+          role: "assistant",
+          timestamp: Date.now(),
+        },
+      ]);
       return;
     } else if (newMessage.content.startsWith("/exit")) {
       setSplitView(false);
@@ -770,7 +786,8 @@ const fetchAIResponse = async (userMessage: Message) => {
     setIsStreaming(true);
     abortControllerRef.current = new AbortController();
     
-    const cleanedMessages = messages.filter(msg => !msg.content.startsWith("/")).map((msg) => ({
+    // Remove filter to include messages starting with '/'
+    const cleanedMessages = messages.map((msg) => ({
       role: msg.role,
       content: stripFunctionCallDivs(msg.content)
     }));
