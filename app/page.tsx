@@ -32,6 +32,12 @@ import gravatarUrl from "gravatar-url";
 import { parseMarkdown } from "@/utils/markdownParser"; // Add this import
 import ReactDOMServer from "react-dom/server";
 import { Loader2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 interface StatusIndicatorProps {
   status: "loading" | "done"
@@ -418,91 +424,35 @@ function MessageComponent({
         )}
         {message.role === "assistant" && (
           <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Assistant management buttons (copy, regenerate) */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-gray-400 hover:bg-[#2f2f2f]"
-                    onClick={handleCopy}
-                  >
-                    {isCopied ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isCopied ? "Copied!" : "Copy message"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-gray-400 hover:bg-[#2f2f2f]"
-                    onClick={() => onRegenerate?.(message.id)}
-                  >
-                    <Sync className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Regenerate response</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <MoreVertical className="w-4 h-4 text-white" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-[#1E1E1E] border border-[#383838] rounded-lg shadow-lg">
+                <DropdownMenuItem onClick={handleCopy}>
+                  Copy
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onRegenerate?.(message.id)}>
+                  Regenerate
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
       {/* Removed previous absolute positioned management buttons */}
       {message.role !== "assistant" && (
-        <div
-          className={`opacity-0 group-hover:opacity-100 transition-opacity absolute ${
-            message.role === "user" ? "left-8" : "right-8"
-          }`}
-        >
-          <>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-gray-400 hover:bg-[#2f2f2f]"
-                    onClick={handleEdit}
-                  >
-                    {isEditing ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Pencil className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isEditing ? "Save edit" : "Edit message"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-gray-400 hover:bg-[#2f2f2f]"
-                    onClick={() => onDelete?.(message.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete message</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </>
+        <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity top-2 right-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <MoreVertical className="w-4 h-4 text-white" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#1E1E1E] border border-[#383838] rounded-lg shadow-lg">
+              <DropdownMenuItem onClick={() => onDelete?.(message.id)}>
+                Delete message
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
     </motion.div>
@@ -522,6 +472,7 @@ export default function ChatInterface() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false); // Add this state
   const abortControllerRef = useRef<AbortController | null>(null); // Add this ref
+  const [leftPaneToRight, setLeftPaneToRight] = useState(false); // New state
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -1094,171 +1045,380 @@ const fetchAIResponse = async (userMessage: Message) => {
 
   return (
     splitView ? (
-      <div className="flex h-screen overflow-hidden bg-black"> {/* Ensure parent has black background */}
-        {/* Left pane */}
-        <div
-          className="border-r screen border-black overflow-y-auto"
-          style={{ flexBasis: `${editorWidth}%`, backgroundColor: '#1e1e1e' }}
-        >
-          <div className="">
-            {/* Document header bar */}
-            <div className="p-4 border-b border-gray-500 flex items-center justify-between">  {/* Changed border-gray-700 to border-gray-500 */}
-              <span className="text-white font-extralight text-sm">Document Name</span>
-              <button className="text-white focus:outline-none">
-                <LucideMoreVertical className="w-4 h-4" /> {/* Replaced text with icon and reduced size */}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div
-          className="w-[3px] bg-black cursor-col-resize"
-          onMouseDown={handleMouseDown}
-        />
-        {/* Right pane */}
-        <div
-          className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container" /* Added chat-container class */
-          style={{ flexBasis: `${100 - editorWidth}%` }}
-        >
-          {/* The entire chat interface goes here */}
-          {!isConversationStarted ? (
-            <main className="flex-1 flex flex-col items-center justify-center p-4">
-              <motion.h1
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl mb-8"
-              >
-                What can I help with?
-              </motion.h1>
+      <div className="flex h-screen overflow-hidden bg-black">
+        {leftPaneToRight ? (
+          // If left pane is moved to the right, render right pane first then left pane with a left border.
+          <>
+            {/* Right pane */}
+            <div
+              className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
+              style={{ flexBasis: `${100 - editorWidth}%` }}
+            >
+              {!isConversationStarted ? (
+                <main className="flex-1 flex flex-col items-center justify-center p-4">
+                  <motion.h1
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-4xl mb-8"
+                  >
+                    What can I help with?
+                  </motion.h1>
 
-              <div className="w-full max-w-2xl relative">
-                <Input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  placeholder="Message ChatGPT"
-                />
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        disabled={!message.trim()}
-                        onClick={isStreaming ? handleStopRequest : handleSendMessage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isStreaming ? (
-                          <Square className="h-5 w-5" />
-                        ) : (
-                          <SendHorizontal className="h-5 w-5" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    {!message.trim() && (
-                      <TooltipContent>
-                        <p>Please enter a message</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <footer className="p-4 text-center text-sm text-gray-400">
-                <p>
-                  By messaging GPT, you do not agree to our{" "}
-                  <Link href="#" className="underline hover:text-white">
-                    Terms
-                  </Link>{" "}
-                  and have read our{" "}
-                  <Link href="#" className="underline hover:text-white">
-                    Privacy Policy
-                  </Link>
-                </p>
-              </footer>
-            </main>
-          ) : (
-            <>
-              <div className="flex-1 overflow-y-auto">
-                <AnimatePresence>
-                  {messages.map((msg) => (
-                    <MessageComponent
-                      key={msg.id}
-                      message={msg}
-                      onEdit={handleEditMessage}
-                      onDelete={handleDeleteMessage}
-                      onRegenerate={handleRegenerateMessage}
-                    />
-                  ))}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="">
-                <div className="max-w-3xl mx-auto p-4">
-                    <div className="relative sticky bottom-0 bg-[#1E1E1E] p-4">
+                  <div className="w-full max-w-2xl relative">
                     <Input
                       value={message}
-                      onChange={(e) => {
-                      setMessage(e.target.value);
-                      if (e.target.value.startsWith("/")) {
-                        setCommandFilter(e.target.value.slice(1));
-                      } else {
-                        setCommandFilter("");
-                      }
-                      }}
+                      onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
+                        if (e.key === "Enter" && !e.shiftKey && message.trim()) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
                       }}
                       className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                       placeholder="Message ChatGPT"
                     />
-                    {message.startsWith("/") && (
-                      <CommandMenu
-                      isOpen={true}
-                      onSelect={handleCommandSelect}
-                      filter={commandFilter}
-                      splitView={splitView} // pass splitView
-                      />
-                    )}
                     <TooltipProvider>
                       <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                        size="icon"
-                        disabled={!message.trim()}
-                        onClick={isStreaming ? handleStopRequest : handleSendMessage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isStreaming ? (
-                            <Square className="h-5 w-5" />
-                          ) : (
-                            <SendHorizontal className="h-5 w-5" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      {!message.trim() && (
-                        <TooltipContent>
-                        <p>Please enter a message</p>
-                        </TooltipContent>
-                      )}
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            disabled={!message.trim()}
+                            onClick={isStreaming ? handleStopRequest : handleSendMessage}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isStreaming ? (
+                              <Square className="h-5 w-5" />
+                            ) : (
+                              <SendHorizontal className="h-5 w-5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        {!message.trim() && (
+                          <TooltipContent>
+                            <p>Please enter a message</p>
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                     </TooltipProvider>
+                  </div>
+                  <footer className="p-4 text-center text-sm text-gray-400">
+                    <p>
+                      By messaging GPT, you do not agree to our{" "}
+                      <Link href="#" className="underline hover:text-white">
+                        Terms
+                      </Link>{" "}
+                      and have read our{" "}
+                      <Link href="#" className="underline hover:text-white">
+                        Privacy Policy
+                      </Link>
+                    </p>
+                  </footer>
+                </main>
+              ) : (
+                <>
+                  <div className="flex-1 overflow-y-auto">
+                    <AnimatePresence>
+                      {messages.map((msg) => (
+                        <MessageComponent
+                          key={msg.id}
+                          message={msg}
+                          onEdit={handleEditMessage}
+                          onDelete={handleDeleteMessage}
+                          onRegenerate={handleRegenerateMessage}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  <div className="">
+                    <div className="max-w-3xl mx-auto p-4">
+                        <div className="relative sticky bottom-0 bg-[#1E1E1E] p-4">
+                        <Input
+                          value={message}
+                          onChange={(e) => {
+                          setMessage(e.target.value);
+                          if (e.target.value.startsWith("/")) {
+                            setCommandFilter(e.target.value.slice(1));
+                          } else {
+                            setCommandFilter("");
+                          }
+                          }}
+                          onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey && message.trim()) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                          }}
+                          className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          placeholder="Message ChatGPT"
+                        />
+                        {message.startsWith("/") && (
+                          <CommandMenu
+                          isOpen={true}
+                          onSelect={handleCommandSelect}
+                          filter={commandFilter}
+                          splitView={splitView} // pass splitView
+                          />
+                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                            size="icon"
+                            disabled={!message.trim()}
+                            onClick={isStreaming ? handleStopRequest : handleSendMessage}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isStreaming ? (
+                                <Square className="h-5 w-5" />
+                              ) : (
+                                <SendHorizontal className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          {!message.trim() && (
+                            <TooltipContent>
+                            <p>Please enter a message</p>
+                            </TooltipContent>
+                          )}
+                          </Tooltip>
+                        </TooltipProvider>
+                        </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        GPT can make mistakes. It is not a bug, it is a feature.
+                      </p>
                     </div>
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    GPT can make mistakes. It is not a bug, it is a feature.
-                  </p>
+                  </div>
+                </>
+              )}
+            </div>
+            <div
+              className="w-[3px] bg-black cursor-col-resize"
+              onMouseDown={handleMouseDown}
+            />
+            {/* Left pane on right side with left border */}
+            <div
+              className="border-l screen border-black overflow-y-auto"
+              style={{ flexBasis: `${editorWidth}%`, backgroundColor: '#1e1e1e' }}
+            >
+              <div>
+                {/* Document header bar */}
+                <div className="p-2 border-b border-gray-500 flex items-center justify-between"> {/* Changed p-4 to p-2 */}
+                  <span className="text-white font-extralight text-sm">Document Name</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-white focus:outline-none">
+                        <LucideMoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]"> {/* Translucent background and no rounded */}
+                      <DropdownMenuItem
+                        onSelect={() => setSplitView(false)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Close Document Name
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setLeftPaneToRight(true)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Move to right side
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
+                {/* Existing left pane content */}
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        ) : (
+          // Default layout with left pane on left side.
+          <>
+            {/* Left pane */}
+            <div
+              className="border-r screen border-black overflow-y-auto"
+              style={{ flexBasis: `${editorWidth}%`, backgroundColor: '#1e1e1e' }}
+            >
+              <div>
+                {/* Document header bar */}
+                <div className="p-2 border-b border-gray-500 flex items-center justify-between"> {/* Changed p-4 to p-2 */}
+                  <span className="text-white font-extralight text-sm">Document Name</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-white focus:outline-none">
+                        <LucideMoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]"> {/* Translucent background and no rounded */}
+                      <DropdownMenuItem
+                        onSelect={() => setSplitView(false)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Close Document Name
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setLeftPaneToRight(true)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Move to right side
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                {/* Existing left pane content */}
+              </div>
+            </div>
+            <div
+              className="w-[3px] bg-black cursor-col-resize"
+              onMouseDown={handleMouseDown}
+            />
+            {/* Right pane */}
+            <div
+              className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
+              style={{ flexBasis: `${100 - editorWidth}%` }}
+            >
+              {!isConversationStarted ? (
+                <main className="flex-1 flex flex-col items-center justify-center p-4">
+                  <motion.h1
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-4xl mb-8"
+                  >
+                    What can I help with?
+                  </motion.h1>
+
+                  <div className="w-full max-w-2xl relative">
+                    <Input
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && message.trim()) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      placeholder="Message ChatGPT"
+                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            disabled={!message.trim()}
+                            onClick={isStreaming ? handleStopRequest : handleSendMessage}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isStreaming ? (
+                              <Square className="h-5 w-5" />
+                            ) : (
+                              <SendHorizontal className="h-5 w-5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        {!message.trim() && (
+                          <TooltipContent>
+                            <p>Please enter a message</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <footer className="p-4 text-center text-sm text-gray-400">
+                    <p>
+                      By messaging GPT, you do not agree to our{" "}
+                      <Link href="#" className="underline hover:text-white">
+                        Terms
+                      </Link>{" "}
+                      and have read our{" "}
+                      <Link href="#" className="underline hover:text-white">
+                        Privacy Policy
+                      </Link>
+                    </p>
+                  </footer>
+                </main>
+              ) : (
+                <>
+                  <div className="flex-1 overflow-y-auto">
+                    <AnimatePresence>
+                      {messages.map((msg) => (
+                        <MessageComponent
+                          key={msg.id}
+                          message={msg}
+                          onEdit={handleEditMessage}
+                          onDelete={handleDeleteMessage}
+                          onRegenerate={handleRegenerateMessage}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  <div className="">
+                    <div className="max-w-3xl mx-auto p-4">
+                        <div className="relative sticky bottom-0 bg-[#1E1E1E] p-4">
+                        <Input
+                          value={message}
+                          onChange={(e) => {
+                          setMessage(e.target.value);
+                          if (e.target.value.startsWith("/")) {
+                            setCommandFilter(e.target.value.slice(1));
+                          } else {
+                            setCommandFilter("");
+                          }
+                          }}
+                          onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey && message.trim()) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                          }}
+                          className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          placeholder="Message ChatGPT"
+                        />
+                        {message.startsWith("/") && (
+                          <CommandMenu
+                          isOpen={true}
+                          onSelect={handleCommandSelect}
+                          filter={commandFilter}
+                          splitView={splitView} // pass splitView
+                          />
+                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                            size="icon"
+                            disabled={!message.trim()}
+                            onClick={isStreaming ? handleStopRequest : handleSendMessage}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isStreaming ? (
+                                <Square className="h-5 w-5" />
+                              ) : (
+                                <SendHorizontal className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          {!message.trim() && (
+                            <TooltipContent>
+                            <p>Please enter a message</p>
+                            </TooltipContent>
+                          )}
+                          </Tooltip>
+                        </TooltipProvider>
+                        </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        GPT can make mistakes. It is not a bug, it is a feature.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
     ) : (
       <div className="h-screen chat-container screen bg-[#000000] text-white flex flex-col overflow-hidden"> {/* Changed to black background */}
