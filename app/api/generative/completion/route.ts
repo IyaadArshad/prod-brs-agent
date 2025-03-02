@@ -5,6 +5,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
+
+/**
+ * demo input:
+ * {
+ * "messages": [
+ *  {
+ *   "role": "user",
+ *  "content": "What can you do?"
+ * }
+ * ]
+ * }
+ */
 async function create_file(file_name: string) {
   const response = await fetch(
     "https://brs-agent.datamation.lk/api/data/createFile",
