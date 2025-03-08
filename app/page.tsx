@@ -53,6 +53,7 @@ export default function ChatInterface() {
   const [isStreaming, setIsStreaming] = useState(false); // Add this state
   const abortControllerRef = useRef<AbortController | null>(null); // Add this ref
   const [leftPaneToRight, setLeftPaneToRight] = useState(false); // New state
+  const [openedDocument, setOpenedDocument] = useState<string>("");
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -280,6 +281,7 @@ export default function ChatInterface() {
         (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))
       ) {
         setSplitView(true);
+        setOpenedDocument(parts[1]); // Set the opened document name
         assistantMsg = `Opening file: ${parts[1]}`;
       } else {
         assistantMsg =
@@ -604,55 +606,55 @@ export default function ChatInterface() {
 
   if (!user) {
     return (
-      <div className="h-screen chat-container bg-[#1E1E1E] text-white flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#ffffff] text-[#000000] flex flex-col justify-center items-center p-4 relative">
+
+        {/* Centered Content */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-lg space-y-8"
+          className="w-full max-w-sm space-y-6"
         >
-          <div className="text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl mb-8"
-            >
-              Initial Platform Setup
-            </motion.h1>
-          </div>
+          <h1 className="text-2xl text-center font-semibold">
+            Create an account
+          </h1>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                id="name"
-                value={newUserName}
-                onChange={(e) => setNewUserName(e.target.value)}
-                className="bg-[#2f2f2f] border-none text-white focus-visible:ring-0 focus-visible:ring-offset-0"
-                placeholder="Enter your name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Input
-                id="email"
-                type="email"
-                value={newUserEmail}
-                onChange={(e) => setNewUserEmail(e.target.value)}
-                className="bg-[#2f2f2f] border-none text-white focus-visible:ring-0 focus-visible:ring-offset-0"
-                placeholder="Enter your email"
-              />
-            </div>
+            <Input
+              id="name"
+              value={newUserName}
+              onChange={(e) => setNewUserName(e.target.value)}
+              placeholder="Name*"
+              className="rounded border border-[#00a587] text-[#000000] placeholder:text-[#15847e] placeholder:font-light focus-visible:ring-0 focus-visible:ring-offset-0"
+              style={{ borderWidth: "1px" }}
+            />
+            <Input
+              id="email"
+              type="email"
+              value={newUserEmail}
+              onChange={(e) => setNewUserEmail(e.target.value)}
+              placeholder="Email address*"
+              className="rounded border border-[#00a587] text-[#000000] placeholder:text-[#15847e] placeholder:font-light focus-visible:ring-0 focus-visible:ring-offset-0"
+              style={{ borderWidth: "1px" }}
+            />
 
             <Button
               onClick={handleUserRegistration}
               disabled={
                 !newUserName.trim() || !newUserEmail.trim() || isRegistering
               }
-              className="w-full transition-all duration-200 hover:bg-[#c0c0c0] hover:text-[#0e0e0e] bg-[#ffffff] text-[#000000] disabled:hover:bg-[#676767] disabled:hover:text-[#2f2f2f]"
+              className="w-full bg-[#15847e] text-[#ffffff] rounded-sm transition-colors hover:bg-[#10655e]"
             >
               {isRegistering ? "Loading..." : "Continue"}
             </Button>
           </div>
         </motion.div>
+
+        {/* Top-left logo addition */}
+        <div className="absolute top-3 left-3">
+          <h2 className="text-xl font-semibold">
+            ChatGPT <span className="text-sm font-normal italic">for BRS</span>
+          </h2>
+        </div>
       </div>
     );
   }
@@ -831,35 +833,36 @@ export default function ChatInterface() {
           >
             <div>
               {/* Document header bar */}
-              <div className="p-2 border-b border-gray-500 flex items-center justify-between">
-                {" "}
-                {/* Changed p-4 to p-2 */}
-                <span className="text-white font-extralight text-sm">
-                  Document Name
-                </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="text-white focus:outline-none">
-                      <LucideMoreVertical className="w-4 h-4" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
-                    {" "}
-                    {/* Translucent background and no rounded */}
-                    <DropdownMenuItem
-                      onSelect={() => setSplitView(false)}
-                      className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
-                    >
-                      Close Document Name
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => setLeftPaneToRight(true)}
-                      className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
-                    >
-                      Move to right side
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="bg-[#2a2a2a] border-b border-[#404040] shadow-sm">
+                <div className="p-4 flex items-center justify-between">
+                  <h1 className="text-white text-lg font-light">
+                    {openedDocument}
+                  </h1>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-white focus:outline-none">
+                        <LucideMoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setSplitView(false);
+                          setOpenedDocument("");
+                        }}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Close {openedDocument}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setLeftPaneToRight(true)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Move to right side
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               {/* Existing left pane content */}
             </div>
@@ -875,35 +878,36 @@ export default function ChatInterface() {
           >
             <div>
               {/* Document header bar */}
-              <div className="p-2 border-b border-gray-500 flex items-center justify-between">
-                {" "}
-                {/* Changed p-4 to p-2 */}
-                <span className="text-white font-extralight text-sm">
-                  Document Name
-                </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="text-white focus:outline-none">
-                      <LucideMoreVertical className="w-4 h-4" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
-                    {" "}
-                    {/* Translucent background and no rounded */}
-                    <DropdownMenuItem
-                      onSelect={() => setSplitView(false)}
-                      className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
-                    >
-                      Close Document Name
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => setLeftPaneToRight(true)}
-                      className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
-                    >
-                      Move to right side
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="bg-[#2a2a2a] border-b border-[#404040] shadow-sm">
+                <div className="p-3 flex items-center justify-between">
+                  <span className="text-white font-light text-sm">
+                    {openedDocument}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-white focus:outline-none">
+                        <LucideMoreVertical className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setSplitView(false);
+                          setOpenedDocument("");
+                        }}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Close {openedDocument}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setLeftPaneToRight(true)}
+                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
+                      >
+                        Move to right side
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               {/* Existing left pane content */}
             </div>
