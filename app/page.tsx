@@ -44,6 +44,9 @@ export default function ChatInterface() {
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
   );
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isConversationStarted, setIsConversationStarted] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -134,9 +137,6 @@ export default function ChatInterface() {
     // Implement the action handling logic here
     console.log(`Selected action: ${action}`);
   };
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isConversationStarted, setIsConversationStarted] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -303,16 +303,11 @@ export default function ChatInterface() {
     }
   };
 
-  // Add this helper function before fetchAIResponse
   function stripFunctionCallDivs(content: string): string {
     let functionCallText = "";
-
-    // Extract text from all function call divs
     const regex =
       /<div class="flex function-call[^>]*>.*?<span[^>]*>(.*?)<\/span>.*?<\/div>/g;
     let match;
-
-    // Replace function call divs but collect their text content
     content = content.replace(
       /<div class="flex flex-col gap-2">[\s\S]*?<\/div>/g,
       (match) => {
@@ -336,8 +331,6 @@ export default function ChatInterface() {
     try {
       setIsStreaming(true);
       abortControllerRef.current = new AbortController();
-
-      // Remove filter to include messages starting with '/'
       const cleanedMessages = messages.map((msg) => ({
         role: msg.role,
         content: stripFunctionCallDivs(msg.content),
@@ -667,7 +660,6 @@ export default function ChatInterface() {
   return splitView ? (
     <div className="flex h-screen overflow-hidden bg-black">
       {leftPaneToRight ? (
-        // If left pane is moved to the right, render right pane first then left pane with a left border.
         <>
           {/* Right pane */}
           <div
@@ -1085,7 +1077,6 @@ export default function ChatInterface() {
   ) : (
     <div className="h-screen chat-container screen text-white flex flex-col overflow-hidden">
       {" "}
-      {/* Changed to black background */}
       {/* The entire chat interface goes here */}
       {!isConversationStarted ? (
         <main className="flex-1 flex flex-col items-center justify-center p-4">
