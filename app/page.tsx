@@ -58,6 +58,7 @@ export default function ChatInterface() {
   // NEW: state for loaded file and loading flag
   const [fileContent, setFileContent] = useState("");
   const [isFileLoading, setIsFileLoading] = useState(false);
+  const [renderedContent, setRenderedContent] = useState<string>("");
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -622,6 +623,12 @@ export default function ChatInterface() {
     }
   }, [openedDocument, splitView]);
 
+  useEffect(() => {
+    if (fileContent) {
+      setRenderedContent(renderDocument(fileContent));
+    }
+  }, [fileContent]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#ffffff] text-[#000000] flex flex-col justify-center items-center p-4 relative">
@@ -894,9 +901,9 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div
+                <div 
                   className="prose prose-invert p-12"
-                  dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
+                  dangerouslySetInnerHTML={{ __html: renderedContent }}
                 />
               )}
             </div>
@@ -955,9 +962,9 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div
+                <div 
                   className="prose prose-invert p-12"
-                  dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
+                  dangerouslySetInnerHTML={{ __html: renderedContent }}
                 />
               )}
             </div>
