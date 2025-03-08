@@ -27,6 +27,7 @@ import { StatusIndicator } from "@/components/indicator";
 import { logVerbose } from "@/components/home/camelCased/logVerbose";
 import { CommandMenu } from "@/components/home/CommandMenu";
 import { MessageComponent } from "@/components/home/MessageComponent";
+import { renderDocument } from "@/utils/renderDocument"; // NEW custom markdown renderer import
 
 declare global {
   interface Window {
@@ -54,6 +55,9 @@ export default function ChatInterface() {
   const abortControllerRef = useRef<AbortController | null>(null); // Add this ref
   const [leftPaneToRight, setLeftPaneToRight] = useState(false); // New state
   const [openedDocument, setOpenedDocument] = useState<string>("");
+  // NEW: state for loaded file and loading flag
+  const [fileContent, setFileContent] = useState("");
+  const [isFileLoading, setIsFileLoading] = useState(false);
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -604,6 +608,20 @@ export default function ChatInterface() {
     }
   };
 
+  useEffect(() => {
+    if (splitView && openedDocument) {
+      setIsFileLoading(true);
+      fetch(`/api/data/readFile?file_name=${openedDocument}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) setFileContent(data.data);
+          else setFileContent("");
+        })
+        .catch((error) => console.error("Error reading file:", error))
+        .finally(() => setIsFileLoading(false));
+    }
+  }, [openedDocument, splitView]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#ffffff] text-[#000000] flex flex-col justify-center items-center p-4 relative">
@@ -864,7 +882,23 @@ export default function ChatInterface() {
                   </DropdownMenu>
                 </div>
               </div>
-              {/* Existing left pane content */}
+              {/* NEW: Replace left pane content with loading spinner or markdown */}
+              {isFileLoading ? (
+                <div className="flex flex-col items-center justify-center min-h-screen">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
+                  <h2 className="text-2xl font-bold mt-4">
+                    Loading {openedDocument}
+                  </h2>
+                  <p className="text-gray-500 mt-2">
+                    Please wait while we load your document...
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="prose prose-invert p-4"
+                  dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
+                />
+              )}
             </div>
           </div>
         </>
@@ -909,7 +943,23 @@ export default function ChatInterface() {
                   </DropdownMenu>
                 </div>
               </div>
-              {/* Existing left pane content */}
+              {/* NEW: Replace left pane content with loading spinner or markdown */}
+              {isFileLoading ? (
+                <div className="flex flex-col items-center justify-center min-h-screen">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
+                  <h2 className="text-2xl font-bold mt-4">
+                    Loading {openedDocument}
+                  </h2>
+                  <p className="text-gray-500 mt-2">
+                    Please wait while we load your document...
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="prose prose-invert p-4"
+                  dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
+                />
+              )}
             </div>
           </div>
           <div
