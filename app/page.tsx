@@ -632,7 +632,6 @@ export default function ChatInterface() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#ffffff] text-[#000000] flex flex-col justify-center items-center p-4 relative">
-
         {/* Centered Content */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -901,7 +900,7 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div 
+                <div
                   className="prose prose-invert p-12"
                   dangerouslySetInnerHTML={{ __html: renderedContent }}
                 />
@@ -962,7 +961,7 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div 
+                <div
                   className="prose prose-invert p-12"
                   dangerouslySetInnerHTML={{ __html: renderedContent }}
                 />
