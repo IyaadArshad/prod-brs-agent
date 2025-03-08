@@ -71,6 +71,14 @@ function preprocessMarkdown(input: string): string {
       text = `<p>${text}</p>`;
     }
   
-    return text;
+    // Wrap final output with a style block and container for custom markdown styling
+    return `<style>
+.markdown-content { color: #f9f9f9; }
+.markdown-content h1 { font-size: 2.5em; color: #f9f9f9; }
+.markdown-content h2 { font-size: 2em; color: #f9f9f9; }
+.markdown-content h3 { font-size: 1.75em; color: #f9f9f9; }
+.markdown-content h4 { font-size: 1.5em; color: #f9f9f9; }
+.markdown-content h5 { font-size: 1.25em; color: #f9f9f9; }
+.markdown-content h6 { font-size: 1em; color: #f9f9f9; }
+</style><div class="markdown-content">${text}</div>`;
   }
-  
