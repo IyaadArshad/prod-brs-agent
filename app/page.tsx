@@ -27,7 +27,11 @@ import { StatusIndicator } from "@/components/indicator";
 import { logVerbose } from "@/components/home/camelCased/logVerbose";
 import { CommandMenu } from "@/components/home/CommandMenu";
 import { MessageComponent } from "@/components/home/MessageComponent";
-import { renderDocument } from "@/utils/renderDocument"; // NEW custom markdown renderer import
+// Remove the renderDocument import
+// import { renderDocument } from "@/utils/renderDocument"; // OLD
+
+// NEW: use the SplitScreenEditor for viewing the document
+import { SplitScreenEditor } from "@/components/splitScreenEditor";
 
 declare global {
   interface Window {
@@ -58,7 +62,8 @@ export default function ChatInterface() {
   // NEW: state for loaded file and loading flag
   const [fileContent, setFileContent] = useState("");
   const [isFileLoading, setIsFileLoading] = useState(false);
-  const [renderedContent, setRenderedContent] = useState<string>("");
+  // Removed renderedContent state
+  // const [renderedContent, setRenderedContent] = useState<string>("");
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -623,11 +628,12 @@ export default function ChatInterface() {
     }
   }, [openedDocument, splitView]);
 
-  useEffect(() => {
-    if (fileContent) {
-      setRenderedContent(renderDocument(fileContent));
-    }
-  }, [fileContent]);
+  // Remove the useEffect that previously rendered markdown via renderDocument
+  // useEffect(() => {
+  //   if (fileContent) {
+  //     setRenderedContent(renderDocument(fileContent));
+  //   }
+  // }, [fileContent]);
 
   if (!user) {
     return (
@@ -888,7 +894,7 @@ export default function ChatInterface() {
                   </DropdownMenu>
                 </div>
               </div>
-              {/* NEW: Replace left pane content with loading spinner or markdown */}
+              {/* NEW: Using SplitScreenEditor for viewing the document */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
@@ -900,10 +906,7 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div
-                  className="prose prose-invert p-12"
-                  dangerouslySetInnerHTML={{ __html: renderedContent }}
-                />
+                <SplitScreenEditor markdown={fileContent} />
               )}
             </div>
           </div>
@@ -961,10 +964,7 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <div
-                  className="prose prose-invert p-12"
-                  dangerouslySetInnerHTML={{ __html: renderedContent }}
-                />
+                <SplitScreenEditor markdown={fileContent} />
               )}
             </div>
           </div>
