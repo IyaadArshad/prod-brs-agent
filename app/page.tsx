@@ -895,7 +895,7 @@ export default function ChatInterface() {
                 </div>
               ) : (
                 <div
-                  className="prose prose-invert p-4"
+                  className="prose prose-invert p-12"
                   dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
                 />
               )}
@@ -956,7 +956,7 @@ export default function ChatInterface() {
                 </div>
               ) : (
                 <div
-                  className="prose prose-invert p-4"
+                  className="prose prose-invert p-12"
                   dangerouslySetInnerHTML={{ __html: renderDocument(fileContent) }}
                 />
               )}
