@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full"> {/* Ensure html has full height */}
+    <html lang="en" className="h-full">{/* Ensure html has full height */}
       <head>
         {/* Add meta tags for SEO and accessibility */}
         <meta charSet="UTF-8" />
