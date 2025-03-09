@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import axios from "axios";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
-
 
 /**
  * demo input:
@@ -88,10 +88,22 @@ async function read_file(file_name: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    let searchContent: {
+      name: string;
+      description: string;
+      parameters: {
+        type: string;
+        required: string[];
+        properties: {
+          query: { type: string };
+        };
+      };
+    } | null = null;
     // model 1 = gpt-4o-mini
     // model 2 = gpt-4o
     // model 2 = o3-mini
-
+    // search option
+    const search = body.search || false;
     const model = body.model || 2;
     if (!body.messages) {
       return NextResponse.json(
@@ -169,6 +181,21 @@ export async function POST(request: Request) {
             );
           };
 
+          if (search) {
+            searchContent = {
+              name: "search",
+              description:
+                "Search for information on the internet via Google. If this function is here, the user has enabled it. Always perform a search to ensure accurate, up to date information",
+              parameters: {
+                type: "object",
+                required: ["query"],
+                properties: {
+                  query: { type: "string" },
+                },
+              },
+            };
+          }
+
           while (true) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
 
@@ -233,8 +260,8 @@ export async function POST(request: Request) {
                         },
                       },
                     },
+                    ...(searchContent ? [searchContent] : []),
                   ],
-                  function_call: "auto",
                   temperature: 1.37,
                   max_completion_tokens: 10000,
                   top_p: 0.68,
@@ -297,6 +324,16 @@ export async function POST(request: Request) {
                 );
               } else if (name === "read_file") {
                 functionResult = await read_file(functionArgs.file_name);
+              } else if (name === "search") {
+                functionResult = await axios
+                  .post("https://brs-agent.datamation.lk/api/v1/search", {
+                    query: functionArgs.query,
+                  })
+                  .then((response) => response.data)
+                  .catch((error) => {
+                    console.error(`Failed to perform search: ${error.message}`);
+                    return { success: false, error: error.message };
+                  });
               } else {
                 console.error(`Function ${name} not found.`);
                 throw new Error(`Function ${name} not found.`);
