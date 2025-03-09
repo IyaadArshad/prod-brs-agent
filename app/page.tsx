@@ -363,7 +363,7 @@ export default function ChatInterface() {
               content: userMessage.content,
             },
           ],
-          search: selectedButtons.search, // Add this line to include search parameter
+          search: selectedButtons.search,
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -375,8 +375,7 @@ export default function ChatInterface() {
       const reader = response.body?.getReader();
       let currentMessage = "";
       let messageId = Date.now().toString();
-      let functionCalls: { description: string; status: "loading" | "done" }[] =
-        [];
+      let functionCalls: { description: string; status: "loading" | "done" }[] = [];
 
       // Create initial message container
       setMessages((prev) => [
@@ -417,7 +416,7 @@ export default function ChatInterface() {
                   status: "loading",
                 });
 
-                // Update status indicators
+                // Instead of filtering out search function calls, render them normally
                 const indicatorsHTML = ReactDOMServer.renderToString(
                   <div className="flex flex-col gap-2">
                     {functionCalls.map((call, index) => (
@@ -438,7 +437,7 @@ export default function ChatInterface() {
                     ))}
                   </div>
                 );
-
+                
                 setMessages((prev) => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage?.id === messageId) {
@@ -542,7 +541,7 @@ export default function ChatInterface() {
                 }
                 break;
               }
-
+              
               case "verbose":
                 logVerbose("Verbose log:", json.data);
                 break;
