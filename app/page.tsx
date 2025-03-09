@@ -62,6 +62,10 @@ export default function ChatInterface() {
   const [isFileLoading, setIsFileLoading] = useState(false);
   // Removed renderedContent state
   // const [renderedContent, setRenderedContent] = useState<string>("");
+  const [selectedButtons, setSelectedButtons] = useState({
+    search: false,
+    reason: false
+  });
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -820,17 +824,39 @@ export default function ChatInterface() {
                             </button>
 
                             {/* Search button */}
-                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                            <button 
+                              onClick={() => setSelectedButtons(prev => ({ ...prev, search: !prev.search }))}
+                              className={`flex h-9 items-center justify-center rounded-full ${
+                                selectedButtons.search 
+                                  ? 'bg-[#2a4a6d] border-0' 
+                                  : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                              } px-3`}
+                            >
+                              <Search className={`h-[18px] w-[18px] ${
+                                selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`} />
+                              <span className={`ml-2 text-sm ${
+                                selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`}>
                                 Search
                               </span>
                             </button>
 
                             {/* Reason button */}
-                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                            <button 
+                              onClick={() => setSelectedButtons(prev => ({ ...prev, reason: !prev.reason }))}
+                              className={`flex h-9 items-center justify-center rounded-full ${
+                                selectedButtons.reason 
+                                  ? 'bg-[#2a4a6d] border-0' 
+                                  : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                              } px-3`}
+                            >
+                              <BrainCircuit className={`h-[18px] w-[18px] ${
+                                selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`} />
+                              <span className={`ml-2 text-sm ${
+                                selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`}>
                                 Reason
                               </span>
                             </button>
@@ -1137,17 +1163,39 @@ export default function ChatInterface() {
                             </button>
 
                             {/* Search button */}
-                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                            <button 
+                              onClick={() => setSelectedButtons(prev => ({ ...prev, search: !prev.search }))}
+                              className={`flex h-9 items-center justify-center rounded-full ${
+                                selectedButtons.search 
+                                  ? 'bg-[#2a4a6d] border-0' 
+                                  : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                              } px-3`}
+                            >
+                              <Search className={`h-[18px] w-[18px] ${
+                                selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`} />
+                              <span className={`ml-2 text-sm ${
+                                selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`}>
                                 Search
                               </span>
                             </button>
 
                             {/* Reason button */}
-                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                            <button 
+                              onClick={() => setSelectedButtons(prev => ({ ...prev, reason: !prev.reason }))}
+                              className={`flex h-9 items-center justify-center rounded-full ${
+                                selectedButtons.reason 
+                                  ? 'bg-[#2a4a6d] border-0' 
+                                  : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                              } px-3`}
+                            >
+                              <BrainCircuit className={`h-[18px] w-[18px] ${
+                                selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`} />
+                              <span className={`ml-2 text-sm ${
+                                selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                              }`}>
                                 Reason
                               </span>
                             </button>
@@ -1336,17 +1384,39 @@ export default function ChatInterface() {
                       </button>
 
                       {/* Search button */}
-                      <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                        <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                        <span className="ml-2 text-sm text-[#b4b4b4]">
+                      <button 
+                        onClick={() => setSelectedButtons(prev => ({ ...prev, search: !prev.search }))}
+                        className={`flex h-9 items-center justify-center rounded-full ${
+                          selectedButtons.search 
+                            ? 'bg-[#2a4a6d] border-0' 
+                            : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                        } px-3`}
+                      >
+                        <Search className={`h-[18px] w-[18px] ${
+                          selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                        }`} />
+                        <span className={`ml-2 text-sm ${
+                          selectedButtons.search ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                        }`}>
                           Search
                         </span>
                       </button>
 
                       {/* Reason button */}
-                      <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                        <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                        <span className="ml-2 text-sm text-[#b4b4b4]">
+                      <button 
+                        onClick={() => setSelectedButtons(prev => ({ ...prev, reason: !prev.reason }))}
+                        className={`flex h-9 items-center justify-center rounded-full ${
+                          selectedButtons.reason 
+                            ? 'bg-[#2a4a6d] border-0' 
+                            : 'border border-[#454545] bg-transparent hover:bg-[#424242]'
+                        } px-3`}
+                      >
+                        <BrainCircuit className={`h-[18px] w-[18px] ${
+                          selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                        }`} />
+                        <span className={`ml-2 text-sm ${
+                          selectedButtons.reason ? 'text-[#48aaff]' : 'text-[#b4b4b4]'
+                        }`}>
                           Reason
                         </span>
                       </button>
