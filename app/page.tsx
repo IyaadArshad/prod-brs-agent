@@ -22,18 +22,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Message } from "@/types/types"; // Add this import
+import { Message } from "@/types/types";
 import { StatusIndicator } from "@/components/indicator";
 import { logVerbose } from "@/components/home/camelCased/logVerbose";
 import { CommandMenu } from "@/components/home/CommandMenu";
 import { MessageComponent } from "@/components/home/MessageComponent";
-// Remove the renderDocument import
-// import { renderDocument } from "@/utils/renderDocument"; // OLD
-
-// NEW: use the SplitScreenEditor for viewing the document
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
-
-// Add this new import at the top with other imports
 import { Upload, Search, BrainCircuit } from "lucide-react";
 
 declare global {
