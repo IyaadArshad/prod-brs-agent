@@ -33,6 +33,9 @@ import { MessageComponent } from "@/components/home/MessageComponent";
 // NEW: use the SplitScreenEditor for viewing the document
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
 
+// Add this new import at the top with other imports
+import { Upload, Search, BrainCircuit } from "lucide-react";
+
 declare global {
   interface Window {
     verbose: boolean;
@@ -785,64 +788,102 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <Input
-                        value={message}
-                        onChange={(e) => {
-                          setMessage(e.target.value);
-                          if (e.target.value.startsWith("/")) {
-                            setCommandFilter(e.target.value.slice(1));
-                          } else {
-                            setCommandFilter("");
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            !e.shiftKey &&
-                            message.trim()
-                          ) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        placeholder="Message ChatGPT"
-                      />
+                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                        {/* Top part - Input area */}
+                        <div className="px-4 pt-4">
+                          <Input
+                            value={message}
+                            onChange={(e) => {
+                              setMessage(e.target.value);
+                              if (e.target.value.startsWith("/")) {
+                                setCommandFilter(e.target.value.slice(1));
+                              } else {
+                                setCommandFilter("");
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "Enter" &&
+                                !e.shiftKey &&
+                                message.trim()
+                              ) {
+                                e.preventDefault();
+                                handleSendMessage();
+                              }
+                            }}
+                            className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
+                            placeholder="Message ChatGPT"
+                          />
+                        </div>
+
+                        {/* Bottom part - Actions */}
+                        <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
+                          <div className="flex gap-x-2">
+                            {/* Upload button */}
+                            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                            </button>
+
+                            {/* Search button */}
+                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                                Search
+                              </span>
+                            </button>
+
+                            {/* Reason button */}
+                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                                Reason
+                              </span>
+                            </button>
+                          </div>
+
+                          {/* Send button */}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  disabled={!message.trim()}
+                                  onClick={
+                                    isStreaming
+                                      ? handleStopRequest
+                                      : handleSendMessage
+                                  }
+                                  className={`h-9 w-9 rounded-full ${
+                                    message.trim()
+                                      ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
+                                      : "bg-[#676767] text-[#2f2f2f]"
+                                  }`}
+                                >
+                                  {isStreaming ? (
+                                    <Square className="h-5 w-5" />
+                                  ) : (
+                                    <SendHorizontal className="h-5 w-5" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              {!message.trim() && (
+                                <TooltipContent>
+                                  <p>Please enter a message</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+
                       {message.startsWith("/") && (
                         <CommandMenu
                           isOpen={true}
                           onSelect={handleCommandSelect}
                           filter={commandFilter}
-                          splitView={splitView} // pass splitView
+                          splitView={splitView}
                         />
                       )}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              disabled={!message.trim()}
-                              onClick={
-                                isStreaming
-                                  ? handleStopRequest
-                                  : handleSendMessage
-                              }
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {isStreaming ? (
-                                <Square className="h-5 w-5" />
-                              ) : (
-                                <SendHorizontal className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          {!message.trim() && (
-                            <TooltipContent>
-                              <p>Please enter a message</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       GPT can make mistakes. It is not a bug, it is a feature.
@@ -1064,64 +1105,102 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <Input
-                        value={message}
-                        onChange={(e) => {
-                          setMessage(e.target.value);
-                          if (e.target.value.startsWith("/")) {
-                            setCommandFilter(e.target.value.slice(1));
-                          } else {
-                            setCommandFilter("");
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            !e.shiftKey &&
-                            message.trim()
-                          ) {
-                            e.preventDefault();
-                            handleSendMessage();
-                          }
-                        }}
-                        className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        placeholder="Message ChatGPT"
-                      />
+                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                        {/* Top part - Input area */}
+                        <div className="px-4 pt-4">
+                          <Input
+                            value={message}
+                            onChange={(e) => {
+                              setMessage(e.target.value);
+                              if (e.target.value.startsWith("/")) {
+                                setCommandFilter(e.target.value.slice(1));
+                              } else {
+                                setCommandFilter("");
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (
+                                e.key === "Enter" &&
+                                !e.shiftKey &&
+                                message.trim()
+                              ) {
+                                e.preventDefault();
+                                handleSendMessage();
+                              }
+                            }}
+                            className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
+                            placeholder="Message ChatGPT"
+                          />
+                        </div>
+
+                        {/* Bottom part - Actions */}
+                        <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
+                          <div className="flex gap-x-2">
+                            {/* Upload button */}
+                            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                            </button>
+
+                            {/* Search button */}
+                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                                Search
+                              </span>
+                            </button>
+
+                            {/* Reason button */}
+                            <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                              <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                              <span className="ml-2 text-sm text-[#b4b4b4]">
+                                Reason
+                              </span>
+                            </button>
+                          </div>
+
+                          {/* Send button */}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  disabled={!message.trim()}
+                                  onClick={
+                                    isStreaming
+                                      ? handleStopRequest
+                                      : handleSendMessage
+                                  }
+                                  className={`h-9 w-9 rounded-full ${
+                                    message.trim()
+                                      ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
+                                      : "bg-[#676767] text-[#2f2f2f]"
+                                  }`}
+                                >
+                                  {isStreaming ? (
+                                    <Square className="h-5 w-5" />
+                                  ) : (
+                                    <SendHorizontal className="h-5 w-5" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              {!message.trim() && (
+                                <TooltipContent>
+                                  <p>Please enter a message</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+
                       {message.startsWith("/") && (
                         <CommandMenu
                           isOpen={true}
                           onSelect={handleCommandSelect}
                           filter={commandFilter}
-                          splitView={splitView} // pass splitView
+                          splitView={splitView}
                         />
                       )}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              disabled={!message.trim()}
-                              onClick={
-                                isStreaming
-                                  ? handleStopRequest
-                                  : handleSendMessage
-                              }
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {isStreaming ? (
-                                <Square className="h-5 w-5" />
-                              ) : (
-                                <SendHorizontal className="h-5 w-5" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          {!message.trim() && (
-                            <TooltipContent>
-                              <p>Please enter a message</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       GPT can make mistakes. It is not a bug, it is a feature.
@@ -1225,58 +1304,102 @@ export default function ChatInterface() {
           <div className="">
             <div className="max-w-5xl mx-auto p-4">
               <div className="sticky bottom-0 p-4">
-                <Input
-                  value={message}
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                    if (e.target.value.startsWith("/")) {
-                      setCommandFilter(e.target.value.slice(1));
-                    } else {
-                      setCommandFilter("");
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none hover:shadow-[0_0_15px_rgba(0,0,0,0.3)] transition-shadow duration-300 ease-in-out"
-                  placeholder="Message ChatGPT"
-                />
+                <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                  {/* Top part - Input area */}
+                  <div className="px-4 pt-4">
+                    <Input
+                      value={message}
+                      onChange={(e) => {
+                        setMessage(e.target.value);
+                        if (e.target.value.startsWith("/")) {
+                          setCommandFilter(e.target.value.slice(1));
+                        } else {
+                          setCommandFilter("");
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          !e.shiftKey &&
+                          message.trim()
+                        ) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
+                      placeholder="Message ChatGPT"
+                    />
+                  </div>
+
+                  {/* Bottom part - Actions */}
+                  <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
+                    <div className="flex gap-x-2">
+                      {/* Upload button */}
+                      <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                        <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                      </button>
+
+                      {/* Search button */}
+                      <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                        <Search className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                        <span className="ml-2 text-sm text-[#b4b4b4]">
+                          Search
+                        </span>
+                      </button>
+
+                      {/* Reason button */}
+                      <button className="flex h-9 items-center justify-center rounded-full border border-[#454545] px-3 bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
+                        <BrainCircuit className="h-[18px] w-[18px] text-[#b4b4b4]" />
+                        <span className="ml-2 text-sm text-[#b4b4b4]">
+                          Reason
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Send button */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            disabled={!message.trim()}
+                            onClick={
+                              isStreaming
+                                ? handleStopRequest
+                                : handleSendMessage
+                            }
+                            className={`h-9 w-9 rounded-full ${
+                              message.trim()
+                                ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
+                                : "bg-[#676767] text-[#2f2f2f]"
+                            }`}
+                          >
+                            {isStreaming ? (
+                              <Square className="h-5 w-5" />
+                            ) : (
+                              <SendHorizontal className="h-5 w-5" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        {!message.trim() && (
+                          <TooltipContent>
+                            <p>Please enter a message</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+
                 {message.startsWith("/") && (
                   <CommandMenu
                     isOpen={true}
                     onSelect={handleCommandSelect}
                     filter={commandFilter}
-                    splitView={splitView} // pass splitView
+                    splitView={splitView}
                   />
                 )}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="icon"
-                        disabled={!message.trim()}
-                        onClick={
-                          isStreaming ? handleStopRequest : handleSendMessage
-                        }
-                        className="absolute send-button right-2 top-1/2 -translate-y-1/2 text-[#ffffff] hover:text-[#c0c0c0] bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isStreaming ? (
-                          <Square className="h-5 w-5" />
-                        ) : (
-                          <SendHorizontal className="h-5 w-5" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    {!message.trim() && (
-                      <TooltipContent>
-                        <p>Please enter a message</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <p className="text-xs text-gray-500 mt-2 text-center">
                 GPT can make mistakes. It is not a bug, it is a feature.
