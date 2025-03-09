@@ -363,6 +363,7 @@ export default function ChatInterface() {
               content: userMessage.content,
             },
           ],
+          search: selectedButtons.search, // Add this line to include search parameter
         }),
         signal: abortControllerRef.current.signal,
       });
