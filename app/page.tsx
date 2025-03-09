@@ -28,7 +28,8 @@ import { logVerbose } from "@/components/home/camelCased/logVerbose";
 import { CommandMenu } from "@/components/home/CommandMenu";
 import { MessageComponent } from "@/components/home/MessageComponent";
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
-import { Upload, Search, BrainCircuit } from "lucide-react";
+import { Upload, Search } from "lucide-react";
+import { ReasonIcon as BrainCircuit } from "./icons/reason";
 
 declare global {
   interface Window {
@@ -782,9 +783,9 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
                         {/* Top part - Input area */}
-                        <div className="px-4 pt-4">
+                        <div className="px-4 pt-4 mb-2">
                           <Input
                             value={message}
                             onChange={(e) => {
@@ -1099,9 +1100,9 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
                         {/* Top part - Input area */}
-                        <div className="px-4 pt-4">
+                        <div className="px-4 pt-4 mb-2">
                           <Input
                             value={message}
                             onChange={(e) => {
@@ -1298,9 +1299,9 @@ export default function ChatInterface() {
           <div className="">
             <div className="max-w-5xl mx-auto p-4">
               <div className="sticky bottom-0 p-4">
-                <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
                   {/* Top part - Input area */}
-                  <div className="px-4 pt-4">
+                  <div className="px-4 pt-4 mb-2">
                     <Input
                       value={message}
                       onChange={(e) => {
