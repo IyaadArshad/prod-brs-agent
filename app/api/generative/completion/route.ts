@@ -325,15 +325,22 @@ export async function POST(request: Request) {
               } else if (name === "read_file") {
                 functionResult = await read_file(functionArgs.file_name);
               } else if (name === "search") {
-                functionResult = await axios
-                  .post("https://brs-agent.datamation.lk/api/v1/search", {
-                    query: functionArgs.query,
-                  })
-                  .then((response) => response.data)
-                  .catch((error) => {
-                    console.error(`Failed to perform search: ${error.message}`);
-                    return { success: false, error: error.message };
-                  });
+                try {
+                  const response = await fetch(
+                    `http://localhost:3000/api/v1/search?query=${(functionArgs.query)}`,
+                    {
+                      method: "GET",
+                      headers: { "Content-Type": "application/json" },
+                    }
+                  );
+                  console.log("RESPONSE SEARCH: ", response);
+                  const responseData = await response.text();
+                  console.log("RESPONSE SEARCH DATA: ", responseData)
+                  functionResult = responseData ? JSON.parse(responseData) : { success: false, error: "Empty response" };
+                } catch (error) {
+                  console.error(`Failed to perform search: ${error}`);
+                  functionResult = { success: false, error: "Failed to process search results" };
+                }
               } else {
                 console.error(`Function ${name} not found.`);
                 throw new Error(`Function ${name} not found.`);
