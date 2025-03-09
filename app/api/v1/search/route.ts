@@ -52,12 +52,19 @@ async function search(
   }
 }
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
   // Extract query parameters from request params
   const url = new URL(request.url);
-  const searchItem = url.searchParams.get("query");
+  const rawQuery = url.searchParams.get("query");
+  if (!rawQuery) {
+    return new Response("Query parameter is required", { status: 400 });
+  }
+  const searchItem = decodeURIComponent(rawQuery).trim();
   const key = process.env.GOOGLE_SEARCH_API_KEY;
   const cx = process.env.GOOGLE_CSE_ID; // Assuming you have stored your CSE ID in an environment variable
+
+  console.log('API Key:', key ? 'Present' : 'Missing');
+  console.log('CSE ID:', cx ? 'Present' : 'Missing');
 
   if (!searchItem || !key || !cx) {
     return new Response(
