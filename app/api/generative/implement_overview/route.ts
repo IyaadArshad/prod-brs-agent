@@ -40,6 +40,16 @@ export async function POST(request: Request) {
   optional description, diagram section, 
   and extra data section.  
 
+  you should be expected to think beyond what you were asked to do. For example, if you are asked to create a one screen library management system only tracking books using crud for storage, you needs to think deeply and step by step. Think about every possible function, module down the the very bottom on what the screen/function might be expected to do. Make sure in the brs document you have broken it down as much as possible. For the example, you should create a screen and have individual modules for each function of the screen, creating book entry, updating book details, deleting books, reading books details, each module should contain the inputs, how its meant to be processed the outputs, you should leave no room for assumption for the developer reading the brs, it should be extremely specific and assume details it doesn't know. in the module example, it should explain how the module processes user input and how it displays output, plans for the ui, for example in the read books module it suggests a plan "
+1. The user would be required to input the name of the book they are querying
+2. The system uses CRUD operation read to fetch attributes IBAN, Name, and Blurb of the book
+4. The system should validate the input to ensure the book name exists in the database.
+5. If the book name is found, the system retrieves the book details including IBAN, Name, Blurb, and Tags.
+6. The retrieved details are displayed in a user-friendly format on the UI.
+7. If the book name is not found, the system should display an appropriate error message to the user.
+8. The UI should provide an option to go back to the main menu or perform another search.
+". Remember that previously the user is used to spending 4 weeks detailing everything specifically and working on it. You should not just create a document with simply what they put. It needs to be extremely specific, detailed and follow requirements. Make sure to include sample data in a table. All tables must have at least 7 rows. You should never have a BRS that feels empty or looks empty or spaced out. it is not meant to be minimalist, it is meant to be detailed to the core.
+
 For your reference, this is the current document content:
 "${file_contents.data}"
 
