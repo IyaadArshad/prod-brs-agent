@@ -375,7 +375,8 @@ export default function ChatInterface() {
       const reader = response.body?.getReader();
       let currentMessage = "";
       let messageId = Date.now().toString();
-      let functionCalls: { description: string; status: "loading" | "done" }[] = [];
+      let functionCalls: { description: string; status: "loading" | "done" }[] =
+        [];
 
       // Create initial message container
       setMessages((prev) => [
@@ -437,7 +438,7 @@ export default function ChatInterface() {
                     ))}
                   </div>
                 );
-                
+
                 setMessages((prev) => {
                   const lastMessage = prev[prev.length - 1];
                   if (lastMessage?.id === messageId) {
@@ -541,7 +542,7 @@ export default function ChatInterface() {
                 }
                 break;
               }
-              
+
               case "verbose":
                 logVerbose("Verbose log:", json.data);
                 break;
