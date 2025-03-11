@@ -14,9 +14,9 @@ export async function GET(request: Request) {
     const file_name = url.searchParams.get("file_name");
 
     if (!file_name) {
-      return Response.json({ 
-        success: false, 
-        message: "file_name is required" 
+      return Response.json({
+        success: false,
+        message: "file_name is required",
       });
     }
 
@@ -24,19 +24,18 @@ export async function GET(request: Request) {
 
     try {
       // Use proper query escaping and structure
-      const record = await pb.collection("files").getFirstListItem(
-        `file_name = "${file_name.replace(/"/g, '\\"')}"`, 
-        { 
+      const record = await pb
+        .collection("files")
+        .getFirstListItem(`file_name = "${file_name.replace(/"/g, '\\"')}"`, {
           fields: "id,data,created,updated",
-          timeout: 10000 // 10 second timeout
-        }
-      );
+          timeout: 10000, // 10 second timeout
+        });
 
       if (!record?.data) {
-        return Response.json({ 
-          success: false, 
+        return Response.json({
+          success: false,
           message: "File not found",
-          code: 404
+          code: 404,
         });
       }
 
@@ -51,41 +50,52 @@ export async function GET(request: Request) {
         v0,
         metadata: {
           created: record.created,
-          updated: record.updated
-        }
+          updated: record.updated,
+        },
       });
-
     } catch (pocketbaseError) {
       console.error("PocketBase query error:", pocketbaseError);
-      
+
       // Check if it's a network timeout
-      if (typeof pocketbaseError === 'object' && pocketbaseError && 'code' in pocketbaseError && pocketbaseError.code === 'ETIMEDOUT') {
+      if (
+        typeof pocketbaseError === "object" &&
+        pocketbaseError &&
+        "code" in pocketbaseError &&
+        pocketbaseError.code === "ETIMEDOUT"
+      ) {
         return Response.json({
           success: false,
           message: "Database connection timeout",
-          code: 504
+          code: 504,
         });
       }
 
       // Check if record not found
-      if (typeof pocketbaseError === 'object' && pocketbaseError && 'status' in pocketbaseError && pocketbaseError.status === 404) {
+      if (
+        typeof pocketbaseError === "object" &&
+        pocketbaseError &&
+        "status" in pocketbaseError &&
+        pocketbaseError.status === 404
+      ) {
         return Response.json({
           success: false,
           message: "File not found",
-          code: 404
+          code: 404,
         });
       }
 
       throw pocketbaseError; // Re-throw for general error handling
     }
-
   } catch (error) {
     console.error("Read file error:", error);
-    return Response.json({ 
+    return Response.json({
       success: false,
-      code: (typeof error === 'object' && error && 'status' in error ? error.status : 500),
+      code:
+        typeof error === "object" && error && "status" in error
+          ? error.status
+          : 500,
       message: "Error reading file",
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 }

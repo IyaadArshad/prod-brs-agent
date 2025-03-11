@@ -9,7 +9,10 @@ export async function POST(request: Request) {
   try {
     params = await request.json();
     if (!params.overview || !params.file_name) {
-      return Response.json({ code: 400, message: "overview and file_name are required" });
+      return Response.json({
+        code: 400,
+        message: "overview and file_name are required",
+      });
     }
   } catch (error) {
     return Response.json({ code: 400, message: "Invalid JSON payload" });
@@ -21,9 +24,9 @@ export async function POST(request: Request) {
 
   const overview = params.overview;
   const file_name = params.file_name;
-  
-  console.log("PARAM OVERVIEW", overview)
-  console.log("PARAM FILENAME", file_name)
+
+  console.log("PARAM OVERVIEW", overview);
+  console.log("PARAM FILENAME", file_name);
 
   const file_contents_fetch = await fetch(
     `https://brs-agent.datamation.lk/api/generative/functions/read_file?file_name=${file_name}`
@@ -63,7 +66,7 @@ Extra Important things to follow:
 5. Do not prefix any part of the BRS with a heading (Example: DO NOT PUT DESCRIPTION OR TITLE BEFORE THE TEXT)
 6. Diagrams are code blocks containing JSON "{"brsDiagram": {}" Do not modify this blank diagram template. `;
 
-const prompt = `
+  const prompt = `
 Hello, please make these changes:
 ${overview}
 `;
@@ -119,16 +122,18 @@ ${overview}
 
     console.log(response);
 
-
     const content = JSON.parse(messageContent);
 
     // put the new version number in a constant, just the integer
-    
-    const publishNewVersion = await fetch("https://brs-agent.datamation.lk/api/data/publishNewVersion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_name, data: content.newVersion }),
-    });
+
+    const publishNewVersion = await fetch(
+      "https://brs-agent.datamation.lk/api/data/publishNewVersion",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_name, data: content.newVersion }),
+      }
+    );
     const publishNewVersionResponse = await publishNewVersion.json();
 
     const latestVersion = publishNewVersionResponse.latestVersion;
