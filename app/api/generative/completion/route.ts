@@ -104,7 +104,6 @@ export async function POST(request: Request) {
     // model 2 = o3-mini
     // search option
     const search = body.search || false;
-    const model = body.model || 2;
     if (!body.messages) {
       return NextResponse.json(
         { error: "messages is required" },
@@ -122,20 +121,6 @@ export async function POST(request: Request) {
     type Message =
       | { role: "system" | "user"; content: string }
       | { role: "function"; name: string; content: string };
-
-    let defaultModel;
-    let openModel;
-
-    if (model === 1) {
-      openModel = "gpt-4o-mini";
-    } else if (model === 2) {
-      openModel = "gpt-4o";
-    } else if (model === 3) {
-      openModel = "gpt-3.5-turbo";
-    } else {
-      openModel = "gpt-4o";
-      defaultModel = true;
-    }
 
     let conversation: Message[] = [
       {
@@ -208,7 +193,7 @@ export async function POST(request: Request) {
                   Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                  model: `${openModel}`,
+                  model: `gpt-4o-mini`, // ${openModel}
                   messages: conversation,
                   functions: [
                     {
@@ -376,9 +361,7 @@ export async function POST(request: Request) {
                 new TextEncoder().encode(
                   `data: ${JSON.stringify({
                     type: "message",
-                    content: text,
-                    openModel,
-                    model,
+                    content: text
                   })}\n\n`
                 )
               );
