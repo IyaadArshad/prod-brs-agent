@@ -350,7 +350,12 @@ export default function ChatInterface() {
         content: stripFunctionCallDivs(msg.content),
       }));
 
-      const response = await fetch("/api/generative/completion", {
+      // Dynamically choose API endpoint based on reason button selection
+      const endpoint = selectedButtons.reason 
+        ? "/api/generative/completionReason" 
+        : "/api/generative/completion";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
