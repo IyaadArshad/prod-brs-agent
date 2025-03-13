@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     }
 
     console.log();
-    console.log(`v2 Completion Endpoint Call [Mini Model]`);
+    console.log(`v2 Completion Endpoint Call [Search Model]`);
     console.log();
 
     let conversation: Message[] = [
