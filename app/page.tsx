@@ -352,8 +352,8 @@ export default function ChatInterface() {
 
       // Dynamically choose API endpoint based on reason button selection
       const endpoint = selectedButtons.reason 
-        ? "/api/generative/completionReason" 
-        : "/api/generative/completion";
+        ? "/api/v2/completionReason" 
+        : "/api/v2/completion";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -362,13 +362,14 @@ export default function ChatInterface() {
         },
         body: JSON.stringify({
           messages: [
-            ...cleanedMessages,
-            {
-              role: userMessage.role,
-              content: userMessage.content,
-            },
+        ...cleanedMessages,
+        {
+          role: userMessage.role,
+          content: userMessage.content,
+        },
           ],
-          search: selectedButtons.search,
+          search: selectedButtons.search || false,
+          userName: user?.name || "",
         }),
         signal: abortControllerRef.current.signal,
       });
