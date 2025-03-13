@@ -350,10 +350,12 @@ export default function ChatInterface() {
         content: stripFunctionCallDivs(msg.content),
       }));
 
-      // Dynamically choose API endpoint based on reason button selection
+      // Dynamically choose API endpoint based on button selections
       const endpoint = selectedButtons.reason 
-        ? "/api/v2/completionReason" 
-        : "/api/v2/completion";
+        ? "/api/v2/completionReason"
+        : selectedButtons.search
+          ? "/api/v2/completionSearch" 
+          : "/api/v2/completion";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -836,6 +838,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   search: !prev.search,
+                                  reason: false // Disable reason when toggling search
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -868,6 +871,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   reason: !prev.reason,
+                                  search: false // Disable search when toggling reason
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1201,6 +1205,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   search: !prev.search,
+                                  reason: false // Disable reason when toggling search
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1233,6 +1238,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   reason: !prev.reason,
+                                  search: false // Disable search when toggling reason
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1448,6 +1454,7 @@ export default function ChatInterface() {
                           setSelectedButtons((prev) => ({
                             ...prev,
                             search: !prev.search,
+                            reason: false // Disable reason when toggling search
                           }))
                         }
                         className={`flex h-9 items-center justify-center rounded-full ${
@@ -1480,6 +1487,7 @@ export default function ChatInterface() {
                           setSelectedButtons((prev) => ({
                             ...prev,
                             reason: !prev.reason,
+                            search: false // Disable search when toggling reason
                           }))
                         }
                         className={`flex h-9 items-center justify-center rounded-full ${
