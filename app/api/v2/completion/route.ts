@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Search boolean value is required",
+          message: "Please specify the user's name in userName in body, it is required",
         },
         { status: 400 }
       );
