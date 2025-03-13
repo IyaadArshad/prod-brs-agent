@@ -91,9 +91,7 @@ export async function POST(request: Request) {
   try {
     response = await openai.chat.completions.create({
       model: "o3-mini",
-      reasoning: {
-        effort: "high"
-      },
+      reasoning_effort: "high",
       messages: [
         {
           role: "developer",
