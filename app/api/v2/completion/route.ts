@@ -80,18 +80,6 @@ async function read_file(file_name: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    let searchContent: {
-      name: string;
-      description: string;
-      parameters: {
-        type: string;
-        required: string[];
-        properties: {
-          query: { type: string };
-        };
-      };
-    } | null = null;
-    const search = body.search;
     const userName = body.userName;
     const { messages: userMessages } = body;
     const functionCallLogs: { name: string; arguments: any }[] = [];
@@ -101,14 +89,6 @@ export async function POST(request: Request) {
         {
           success: false,
           message: "Messages are required",
-        },
-        { status: 400 }
-      );
-    } else if (search === undefined) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Search boolean value is required",
         },
         { status: 400 }
       );
@@ -122,12 +102,8 @@ export async function POST(request: Request) {
       );
     }
 
-    let paramsMessage;
-    if (body.search) paramsMessage = "[Search Active]";
-    else paramsMessage = "[Search Disabled]";
-
     console.log();
-    console.log(`v2 Completion Endpoint Call [Mini Model] ${paramsMessage}`);
+    console.log(`v2 Completion Endpoint Call [Mini Model]`);
     console.log();
 
     let conversation: Message[] = [
@@ -165,21 +141,6 @@ export async function POST(request: Request) {
               )
             );
           };
-
-          if (search) {
-            searchContent = {
-              name: "search",
-              description:
-                "Search for information on the internet via Google. If this function is here, the user has enabled it. Always perform a search to ensure accurate, up to date information",
-              parameters: {
-                type: "object",
-                required: ["query"],
-                properties: {
-                  query: { type: "string" },
-                },
-              },
-            };
-          }
 
           while (true) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
@@ -245,7 +206,6 @@ export async function POST(request: Request) {
                         },
                       },
                     },
-                    ...(searchContent ? [searchContent] : []),
                   ],
                   temperature: 1.0,
                   max_completion_tokens: 10000,
