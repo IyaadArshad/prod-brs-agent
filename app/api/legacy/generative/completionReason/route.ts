@@ -19,7 +19,7 @@ const openai = new OpenAI({
  */
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/data/createFile",
+    "https://brs-agent.datamation.lk/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,7 +36,7 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(file_name: string, data: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/data/writeInitialData",
+    "https://brs-agent.datamation.lk/api/legacy/data/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://brs-agent.datamation.lk/api/data/readFile?file_name=${file_name}`,
+    `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
