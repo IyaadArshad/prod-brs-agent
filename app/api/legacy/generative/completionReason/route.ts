@@ -53,7 +53,7 @@ async function write_initial_data(file_name: string, data: string) {
 
 async function implement_edits(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/generative/implement_edits",
+    "https://brs-agent.datamation.lk/api/v2/models/implement_edits",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
