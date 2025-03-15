@@ -5,6 +5,7 @@ const openai = new OpenAI({
 });
 
 export async function POST(request: Request) {
+  // Step 1: Parse and validate user inputs (file_name and input)
   if (!process.env.OPENAI_API_KEY) {
     return Response.json({ code: 500, message: "Missing OpenAI API key" });
   }
@@ -26,21 +27,24 @@ export async function POST(request: Request) {
   const file_name = params.file_name;
 
   try {
-    // Fetch file contents with better error handling
-    const file_contents_fetch = (await Promise.race([
-      fetch(
-        `https://brs-agent.datamation.lk/api/generative/functions/read_file?file_name=${encodeURIComponent(
-          file_name
-        )}`,
-        {
-          headers: { "Cache-Control": "no-cache" },
-        }
-      ),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timeout")), 15000)
-      ),
-    ])) as Response;
-    const file_contents = await file_contents_fetch.json();
+    // Step 2: Read the file contents and store result in file_contents
+    const file_contents_fetch = await fetch(
+      `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${encodeURIComponent(file_name)}`,
+      {
+        headers: { "Cache-Control": "no-cache" },
+      }
+    );
+    console.log(file_contents_fetch);
+    if (!file_contents_fetch.ok) {
+      const errorText = await file_contents_fetch.text();
+      throw new Error(`Error fetching file contents: ${errorText}`);
+    }
+    let file_contents;
+    try {
+      file_contents = await file_contents_fetch.json();
+    } catch (jsonError) {
+      throw new Error("Invalid JSON response from file read");
+    }
 
     if (!file_contents.success) {
       if (file_contents.code === 404) {
@@ -59,6 +63,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // Step 3: Pass file contents and user input to generate the overview prompt
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
