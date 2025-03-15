@@ -7,11 +7,12 @@ const openai = new OpenAI({
 
 type Message =
   | { role: "system" | "user"; content: string }
+  | { role: "assistant"; content: string | null; function_call?: any }
   | { role: "function"; name: string; content: string };
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/data/createFile",
+    "https://brs-agent.datamation.lk/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,7 +46,7 @@ async function write_initial_data(user_inputs: string, file_name: string) {
 
 async function implement_edits(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/generative/implement_edits",
+    "https://brs-agent.datamation.lk/api/v2/models/implement_edits",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,7 +64,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://brs-agent.datamation.lk/api/data/readFile?file_name=${file_name}`,
+    `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -156,6 +157,9 @@ export async function POST(request: Request) {
           while (true) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
 
+            // Filter out function messages before sending to OpenAI
+            const apiMessages = conversation.filter(msg => msg.role !== "function");
+
             const openAiResponse = await fetch(
               "https://api.openai.com/v1/chat/completions",
               {
@@ -167,7 +171,7 @@ export async function POST(request: Request) {
                 body: JSON.stringify({
                   model: "o3-mini",
                   reasoning_effort: "high",
-                  messages: conversation,
+                  messages: apiMessages, // Use filtered messages
                   functions: [
                     {
                       name: "create_brs_file",
@@ -325,9 +329,8 @@ export async function POST(request: Request) {
 
               console.log();
               conversation.push({
-                role: "function",
-                name,
-                content: JSON.stringify(functionResult),
+                role: "assistant",
+                content: `Function ${name} was called with result: ${JSON.stringify(functionResult)}`,
               });
             } else {
               const text = message.content || "";

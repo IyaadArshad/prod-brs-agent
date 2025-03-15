@@ -11,17 +11,24 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/data/createFile",
+    "https://brs-agent.datamation.lk/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ file_name }),
     }
   );
-  const responseData = await response.json();
+  const text = await response.text();
+  let responseData;
+  try {
+    responseData = text ? JSON.parse(text) : {};
+  } catch (error) {
+    console.error(`Failed to parse JSON in create_file: ${error}`);
+    responseData = {};
+  }
   if (!response.ok) {
     console.error(`Failed to create file: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    return { success: false, error: responseData.message || "No error message" };
   }
   return responseData;
 }
@@ -63,7 +70,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://brs-agent.datamation.lk/api/data/readFile?file_name=${file_name}`,
+    `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },

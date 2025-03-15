@@ -11,17 +11,24 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/data/createFile",
+    "https://brs-agent.datamation.lk/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ file_name }),
     }
   );
-  const responseData = await response.json();
+  const text = await response.text();
+  let responseData;
+  try {
+    responseData = text ? JSON.parse(text) : {};
+  } catch (error) {
+    console.error(`Failed to parse JSON in create_file: ${error}`);
+    responseData = {};
+  }
   if (!response.ok) {
     console.error(`Failed to create file: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    return { success: false, error: responseData.message || "No error message" };
   }
   return responseData;
 }
@@ -63,7 +70,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://brs-agent.datamation.lk/api/data/readFile?file_name=${file_name}`,
+    `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -96,15 +103,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Please specify the user's name in userName in body, it is required",
+          message: "Please specify the user's name in userName in body, it is required",
         },
         { status: 400 }
       );
     }
 
     console.log();
-    console.log(`v2 Completion Endpoint Call [Search Model]`);
+    console.log(`v2 Completion Endpoint Call [Mini Model]`);
     console.log();
 
     let conversation: Message[] = [
@@ -146,91 +152,8 @@ export async function POST(request: Request) {
           while (true) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
 
-            // Define function tools
-            const tools = [
-              {
-                type: "function",
-                function: {
-                  name: "create_brs_file",
-                  description: "Creates a .md file for the BRS document",
-                  parameters: {
-                    type: "object",
-                    required: ["file_name"],
-                    properties: {
-                      file_name: { type: "string" },
-                    },
-                  },
-                },
-              },
-              {
-                type: "function",
-                function: {
-                  name: "read_file",
-                  description:
-                    "Reads the contents of a file. Only use this for your reference and context. Do not display the contents of a file to a user. Read the file whenever the user is asking a question about a file.",
-                  parameters: {
-                    type: "object",
-                    required: ["file_name"],
-                    properties: {
-                      file_name: { type: "string" },
-                    },
-                  },
-                },
-              },
-              {
-                type: "function",
-                function: {
-                  name: "implement_edits",
-                  description:
-                    "Update the BRS document with the user's requested changes. Provide the user's inputs",
-                  parameters: {
-                    type: "object",
-                    required: ["user_inputs", "file_name"],
-                    properties: {
-                      user_inputs: { type: "string" },
-                      file_name: { type: "string" },
-                    },
-                  },
-                },
-              },
-              {
-                type: "function",
-                function: {
-                  name: "write_initial_data",
-                  description:
-                    "Writes initial data for version one for a file. You must call this to write initial data to a .md BRS file, provide the user input, what they asked for without changing it and the name of the file that you created",
-                  parameters: {
-                    type: "object",
-                    required: ["user_inputs", "file_name"],
-                    properties: {
-                      user_inputs: { type: "string" },
-                      file_name: { type: "string" },
-                    },
-                  },
-                },
-              },
-              {
-                type: "web_search_preview",
-                user_location: {
-                  type: "approximate",
-                },
-                search_context_size: "medium",
-              },
-            ];
-
-            // Format input messages according to the new API
-            const formattedInput = conversation.map((msg) => ({
-              role: msg.role,
-              content: [
-                {
-                  type: "input_text",
-                  text: msg.content,
-                },
-              ],
-            }));
-
             const openAiResponse = await fetch(
-              "https://api.openai.com/v1/responses",
+              "https://api.openai.com/v1/chat/completions",
               {
                 method: "POST",
                 headers: {
@@ -238,20 +161,62 @@ export async function POST(request: Request) {
                   Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                  model: "gpt-4o",
-                  input: formattedInput,
-                  text: {
-                    format: {
-                      type: "text",
+                  model: `gpt-4o-mini`,
+                  messages: conversation,
+                  functions: [
+                    {
+                      name: "create_brs_file",
+                      description: "Creates a .md file for the BRS document",
+                      parameters: {
+                        type: "object",
+                        required: ["file_name"],
+                        properties: {
+                          file_name: { type: "string" },
+                        },
+                      },
                     },
-                  },
-                  reasoning: {},
-                  tools: tools,
+                    {
+                      name: "read_file",
+                      description:
+                        "Reads the contents of a file. Only use this for your reference and context. Do not display the contents of a file to a user. Read the file whenever the user is asking a question about a file.",
+                      parameters: {
+                        type: "object",
+                        required: ["file_name"],
+                        properties: {
+                          file_name: { type: "string" },
+                        },
+                      },
+                    },
+                    {
+                      name: "implement_edits",
+                      description:
+                        "Update the BRS document with the user's requested changes. Provide the user's inputs",
+                      parameters: {
+                        type: "object",
+                        required: ["user_inputs", "file_name"],
+                        properties: {
+                          user_inputs: { type: "string" },
+                          file_name: { type: "string" },
+                        },
+                      },
+                    },
+                    {
+                      name: "write_initial_data",
+                      description:
+                        "Writes initial data for version one for a file. You must call this to write initial data to a .md BRS file, provide the user input, what they asked for without changing it and the name of the file that you created",
+                      parameters: {
+                        type: "object",
+                        required: ["user_inputs", "file_name"],
+                        properties: {
+                          user_inputs: { type: "string" },
+                          file_name: { type: "string" },
+                        },
+                      },
+                    },
+                  ],
                   temperature: 1.0,
-                  max_output_tokens: 10000,
-                  top_p: 1,
-                  stream: true,
-                  store: true,
+                  max_completion_tokens: 10000,
+                  stream: false,
                 }),
               }
             );
@@ -262,140 +227,122 @@ export async function POST(request: Request) {
               throw new Error(`OpenAI error: ${errorText}`);
             }
 
-            // Handle streaming response
-            const reader = openAiResponse.body?.getReader();
-            if (!reader) throw new Error("No reader available");
+            const openAiResult = await openAiResponse.json();
+            const message = openAiResult.choices[0].message;
+            conversation.push(message);
 
-            let isEndOfResponse = false;
-            while (!isEndOfResponse) {
-              const { done, value } = await reader.read();
-              if (done) {
-                isEndOfResponse = true;
-                break;
-              }
+            console.log("OpenAI Response:");
+            console.log(message);
 
-              const chunk = new TextDecoder().decode(value);
-              const lines = chunk
-                .split("\n")
-                .filter((line) => line.trim() && line.startsWith("data: "));
+            if (message.function_call) {
+              const { name, arguments: args } = message.function_call;
+              const functionArgs = JSON.parse(args);
 
-              for (const line of lines) {
+              functionCallLogs.push({ name, arguments: functionArgs });
+
+              let functionResult;
+
+              console.log();
+              console.log("Function Call:");
+              console.log("Name: ", name);
+              console.log("Parameters: ", functionArgs);
+              console.log();
+
+              // Send "function" chunk
+              controller.enqueue(
+                new TextEncoder().encode(
+                  `data: ${JSON.stringify({
+                    type: "function",
+                    data: name,
+                    parameters: functionArgs, // Include the function parameters
+                  })}\n\n`
+                )
+              );
+
+              if (name === "create_brs_file") {
+                functionResult = await create_file(functionArgs.file_name);
+              } else if (name === "write_initial_data") {
+                functionResult = await write_initial_data(
+                  functionArgs.file_name,
+                  functionArgs.data
+                );
+              } else if (name === "implement_edits") {
+                functionResult = await implement_edits(
+                  functionArgs.user_inputs,
+                  functionArgs.file_name
+                );
+              } else if (name === "read_file") {
+                functionResult = await read_file(functionArgs.file_name);
+              } else if (name === "search") {
                 try {
-                  const data = JSON.parse(line.slice(6));
-
-                  // Convert new format responses to old format
-                  if (data.type === "text") {
-                    controller.enqueue(
-                      new TextEncoder().encode(
-                        `data: ${JSON.stringify({
-                          type: "message",
-                          content: data.text,
-                        })}\n\n`
-                      )
-                    );
-                  } else if (data.type === "tool_calls") {
-                    // Handle function calls from the new API
-                    for (const toolCall of data.tool_calls) {
-                      if (toolCall.type === "function") {
-                        const name = toolCall.function.name;
-                        const args = toolCall.function.arguments;
-
-                        // Parse arguments if they're in string format
-                        const functionArgs =
-                          typeof args === "string" ? JSON.parse(args) : args;
-
-                        functionCallLogs.push({
-                          name,
-                          arguments: functionArgs,
-                        });
-
-                        let functionResult;
-
-                        console.log();
-                        console.log("Function Call:");
-                        console.log("Name: ", name);
-                        console.log("Parameters: ", functionArgs);
-                        console.log();
-
-                        // Send "function" chunk
-                        controller.enqueue(
-                          new TextEncoder().encode(
-                            `data: ${JSON.stringify({
-                              type: "function",
-                              data: name,
-                              parameters: functionArgs,
-                            })}\n\n`
-                          )
-                        );
-
-                        if (name === "create_brs_file") {
-                          functionResult = await create_file(
-                            functionArgs.file_name
-                          );
-                        } else if (name === "write_initial_data") {
-                          functionResult = await write_initial_data(
-                            functionArgs.user_inputs,
-                            functionArgs.file_name
-                          );
-                        } else if (name === "implement_edits") {
-                          functionResult = await implement_edits(
-                            functionArgs.user_inputs,
-                            functionArgs.file_name
-                          );
-                        } else if (name === "read_file") {
-                          functionResult = await read_file(
-                            functionArgs.file_name
-                          );
-                        } else {
-                          console.error(`Function ${name} not found.`);
-                          functionResult = {
-                            success: false,
-                            error: `Function ${name} not found.`,
-                          };
-                        }
-
-                        sendVerbose({
-                          message: "Function called",
-                          name,
-                          arguments: functionArgs,
-                          result: functionResult,
-                        });
-
-                        // Send "functionResult" chunk
-                        controller.enqueue(
-                          new TextEncoder().encode(
-                            `data: ${JSON.stringify({
-                              type: "functionResult",
-                              data: functionResult,
-                            })}\n\n`
-                          )
-                        );
-
-                        console.log();
-                        conversation.push({
-                          role: "function",
-                          name,
-                          content: JSON.stringify(functionResult),
-                        });
-                      }
+                  const response = await fetch(
+                    `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
+                    {
+                      method: "GET",
+                      headers: { "Content-Type": "application/json" },
                     }
-                  } else if (data.type === "end") {
-                    // Handle the end of the stream
-                    controller.enqueue(
-                      new TextEncoder().encode(
-                        `data: ${JSON.stringify({ type: "end" })}\n\n`
-                      )
-                    );
-                    isEndOfResponse = true;
-                  }
-                } catch (err) {
-                  console.error("Error parsing line:", line, err);
+                  );
+                  console.log("RESPONSE SEARCH: ", response);
+                  const responseData = await response.text();
+                  console.log("RESPONSE SEARCH DATA: ", responseData);
+                  functionResult = responseData
+                    ? JSON.parse(responseData)
+                    : { success: false, error: "Empty response" };
+                } catch (error) {
+                  console.error(`Failed to perform search: ${error}`);
+                  functionResult = {
+                    success: false,
+                    error: "Failed to process search results",
+                  };
                 }
+              } else {
+                console.error(`Function ${name} not found.`);
+                throw new Error(`Function ${name} not found.`);
               }
-            }
 
-            controller.close();
-            return;
+              sendVerbose({
+                message: "Function called",
+                name,
+                arguments: functionArgs,
+                result: functionResult,
+              });
+
+              // Send "functionResult" chunk
+              controller.enqueue(
+                new TextEncoder().encode(
+                  `data: ${JSON.stringify({
+                    type: "functionResult",
+                    data: functionResult,
+                  })}\n\n`
+                )
+              );
+
+              console.log();
+              conversation.push({
+                role: "function",
+                name,
+                content: JSON.stringify(functionResult),
+              });
+            } else {
+              const text = message.content || "";
+              // Send final "message" chunk
+              controller.enqueue(
+                new TextEncoder().encode(
+                  `data: ${JSON.stringify({
+                    type: "message",
+                    content: text,
+                  })}\n\n`
+                )
+              );
+              // Send end chunk
+              controller.enqueue(
+                new TextEncoder().encode(
+                  `data: ${JSON.stringify({ type: "end" })}\n\n`
+                )
+              );
+              controller.close();
+              return;
+            }
           }
         },
       }),
