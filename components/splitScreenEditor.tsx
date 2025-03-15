@@ -39,5 +39,22 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
     };
   }, [markdown]);
 
-  return <div ref={editorRef} className="h-full w-full" />;
+  return (
+    <>
+      {/* Updated style block to target milkdown-code-block */}
+      <style>{`
+        .milkdown-editor, .milkdown-editor * {
+          color: #fff !important;
+          font-family: 'Roboto', sans-serif !important;
+        }
+        .milkdown-editor milkdown-code-block,
+        .milkdown-editor milkdown-code-block * {
+          color: #333 !important;
+          background-color: #f5f5f5 !important;
+          font-family: 'Roboto Mono', monospace !important;
+        }
+      `}</style>
+      <div ref={editorRef} className="milkdown-editor h-full w-full" />
+    </>
+  );
 }
