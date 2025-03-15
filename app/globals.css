@@ -218,3 +218,14 @@ body {
   border-color:#444444;
   width: 33%;
 }
+
+/* Milkdown Dark Theme and Transparent Background */
+.milkdown, .milkdown-container {
+    background: transparent !important;
+    height: 100%;
+    color: #c9d1d9;
+}
+.milkdown .ProseMirror {
+    background: transparent !important;
+    height: 100%;
+}
