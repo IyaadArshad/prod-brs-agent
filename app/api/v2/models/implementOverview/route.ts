@@ -120,10 +120,8 @@ ${overview}
 
     console.log(NewVersion);
 
-    const content = JSON.parse(messageContent);
-
     const publishNewVersion = await fetch(
-      "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
+      "http://localhost:3000/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
