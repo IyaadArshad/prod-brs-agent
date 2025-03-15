@@ -8,10 +8,10 @@ export async function POST(request: Request) {
   let params;
   try {
     params = await request.json();
-    if (!params.overview || !params.file_name) {
+    if (!params.overview || !params.file_contents) {
       return Response.json({
         code: 400,
-        message: "overview and file_name are required",
+        message: "overview and file_contents are required",
       });
     }
   } catch (error) {
@@ -26,12 +26,7 @@ export async function POST(request: Request) {
   const file_name = params.file_name;
 
   console.log("PARAM OVERVIEW", overview);
-  console.log("PARAM FILENAME", file_name);
-
-  const file_contents_fetch = await fetch(
-    `https://brs-agent.datamation.lk/api/generative/functions/read_file?file_name=${file_name}`
-  );
-  const file_contents = await file_contents_fetch.json();
+  console.log("PARAM FILE CONTENTS", params.file_contents);
 
   const Sysprompt = `
   
@@ -54,7 +49,7 @@ export async function POST(request: Request) {
 ". Remember that previously the user is used to spending 4 weeks detailing everything specifically and working on it. You should not just create a document with simply what they put. It needs to be extremely specific, detailed and follow requirements. Make sure to include sample data in a table. All tables must have at least 7 rows. You should never have a BRS that feels empty or looks empty or spaced out. it is not meant to be minimalist, it is meant to be detailed to the core.
 
 For your reference, this is the current document content:
-"${file_contents.data}"
+"${params.file_contents}"
 
 Please update the document following these requirements:
 1. Keep the existing document structure
@@ -111,24 +106,28 @@ ${overview}
       max_completion_tokens: 10000,
     });
 
+    const OpenAIResponse = response.choices[0].message.content;
+    if (OpenAIResponse === null) {
+      throw new Error("OpenAIResponse is null");
+    }
+    const NewVersion = JSON.parse(OpenAIResponse).newVersion;
+
     // just publish a new version
     const messageContent = response.choices[0].message.content;
     if (messageContent === null) {
       throw new Error("Response message content is null");
     }
 
-    console.log(response);
+    console.log(NewVersion);
 
     const content = JSON.parse(messageContent);
-
-    // put the new version number in a constant, just the integer
 
     const publishNewVersion = await fetch(
       "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_name, data: content.newVersion }),
+        body: JSON.stringify({ file_name, data: NewVersion }),
       }
     );
     const publishNewVersionResponse = await publishNewVersion.json();
