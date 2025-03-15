@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
   try {
     const implemented_overview = await fetch(
-      "http://localhost:3000/api/v2/models/implementOverview",
+      "https://brs-agent.datamation.lk/api/v2/models/implementOverview",
       {
         method: "POST",
         headers: {
@@ -108,10 +108,12 @@ export async function POST(request: Request) {
       verbose: verbose, // Add verbose data to response
     });
   } catch (error) {
+    console.error("Error implementing overview:", error);
     return Response.json({
       success: false,
       message:
-        "Successfully generated an implementation plan, but was unable to implemenent it",
+        "Successfully generated an implementation plan, but was unable to implement it: " + 
+        (error instanceof Error ? error.message : String(error)),
     });
   }
 }

@@ -121,13 +121,20 @@ ${overview}
     console.log(NewVersion);
 
     const publishNewVersion = await fetch(
-      "http://localhost:3000/api/legacy/data/publishNewVersion",
+      "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ file_name, data: NewVersion }),
       }
     );
+    
+    if (!publishNewVersion.ok) {
+      const errorText = await publishNewVersion.text();
+      console.error(`Failed to publish new version: ${errorText}`);
+      throw new Error(`Publish API returned status ${publishNewVersion.status}: ${errorText}`);
+    }
+    
     const publishNewVersionResponse = await publishNewVersion.json();
 
     const latestVersion = publishNewVersionResponse.latestVersion;
