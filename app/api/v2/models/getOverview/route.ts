@@ -103,6 +103,7 @@ export async function POST(request: Request) {
     return Response.json({
       code: 200,
       prompt: response.choices[0].message.content,
+      file_contents: file_contents.data,
     });
   } catch (error) {
     console.error("Error in overview generation:", error);
