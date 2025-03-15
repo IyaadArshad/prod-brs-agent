@@ -39,7 +39,7 @@ async function write_initial_data(user_inputs: string, file_name: string) {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_name, user_inputs }),
+      body: JSON.stringify({ user_inputs: user_inputs, file_name: file_name }),
     }
   );
   const responseData = await response.json();
@@ -263,8 +263,8 @@ export async function POST(request: Request) {
                 functionResult = await create_file(functionArgs.file_name);
               } else if (name === "write_initial_data") {
                 functionResult = await write_initial_data(
-                  functionArgs.file_name,
-                  functionArgs.data
+                  functionArgs.user_inputs,
+                  functionArgs.file_name
                 );
               } else if (name === "implement_edits") {
                 functionResult = await implement_edits(

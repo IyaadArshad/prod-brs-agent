@@ -113,12 +113,12 @@ export async function POST(request: Request) {
           name: "version_response",
           schema: {
             type: "object",
-            required: ["initialVersion"],
+            required: ["newVersion"],
             properties: {
               newVersion: {
                 type: "string",
                 description:
-                  "Initial version of the document what the user requested implemented",
+                  "The complete markdown content for the BRS document based on the user's requirements. Include all sections, headings, and details as described in the system prompt.",
               },
             },
             additionalProperties: false,
@@ -134,12 +134,30 @@ export async function POST(request: Request) {
   try {
     recordData.latestVersion = 1;
     const data = response.choices[0].message.content;
-    recordData.versions = { 1: data };
-
-    // just publish a new version
-    if (data === null) {
-      throw new Error("Response message content is null");
+    
+    // Parse the JSON to extract just the markdown content
+    let markdownContent;
+    try {
+      if (data === null) {
+        throw new Error("Received null data from OpenAI response");
+      }
+      const parsedData = JSON.parse(data);
+      markdownContent = parsedData.newVersion;
+      
+      if (!markdownContent) {
+        throw new Error("No markdown content found in the response");
+      }
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      return Response.json({
+        success: false,
+        message: "Failed to parse the document content",
+        error: (parseError as Error).message
+      });
     }
+    
+    // Store only the markdown content in the versions
+    recordData.versions = { 1: markdownContent };
 
     await pb.collection("files").update(id, {
       file_name,
@@ -149,7 +167,7 @@ export async function POST(request: Request) {
     return Response.json({
       success: "true",
       message: `**${file_name}** has been successfully initialized`,
-      content: data,
+      content: markdownContent, // Return the markdown content (not the JSON wrapper)
       systemMessage: `The first version is now v1. Use implement_edits to publish subsequent versions.`,
       file_name,
     });
