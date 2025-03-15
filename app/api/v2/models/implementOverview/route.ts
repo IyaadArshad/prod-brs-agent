@@ -110,22 +110,43 @@ ${overview}
     if (OpenAIResponse === null) {
       throw new Error("OpenAIResponse is null");
     }
-    const NewVersion = JSON.parse(OpenAIResponse).newVersion;
-
-    // just publish a new version
-    const messageContent = response.choices[0].message.content;
-    if (messageContent === null) {
-      throw new Error("Response message content is null");
+    
+    console.log("Raw OpenAI response content:", OpenAIResponse);
+    
+    let NewVersion;
+    try {
+      const parsedData = JSON.parse(OpenAIResponse);
+      NewVersion = parsedData.newVersion;
+      
+      if (!NewVersion) {
+        throw new Error("newVersion field is empty or missing");
+      }
+      
+      console.log("Parsed newVersion length:", NewVersion.length);
+      console.log("First 100 chars of newVersion:", NewVersion.substring(0, 100));
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      if (parseError instanceof Error) {
+        throw new Error(`Failed to parse OpenAI response: ${parseError.message}`);
+      } else {
+        throw new Error("Failed to parse OpenAI response: Unknown error");
+      }
     }
 
-    console.log(NewVersion);
+    console.log("Attempting to publish new version for file:", file_name);
+    
+    const publishData = { file_name, data: NewVersion };
+    console.log("Publishing data structure:", JSON.stringify({
+      file_name,
+      dataLength: NewVersion.length
+    }));
 
     const publishNewVersion = await fetch(
       "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_name, data: NewVersion }),
+        body: JSON.stringify(publishData),
       }
     );
     
@@ -145,6 +166,11 @@ ${overview}
       latestVersion,
     });
   } catch (error) {
-    return Response.json({ code: 500, message: error });
+    console.error("Error in implementOverview:", error);
+    return Response.json({ 
+      code: 500, 
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
   }
 }

@@ -35,11 +35,11 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "http://localhost:3000/api/v2/models/writeInitialData",
+    "https://brs-agent.datamation.lk/api/v2/models/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_inputs: user_inputs, file_name: file_name }),
+      body: JSON.stringify({ user_inputs, file_name }),
     }
   );
   const responseData = await response.json();
@@ -60,12 +60,26 @@ async function implement_edits(user_inputs: string, file_name: string) {
     }
   );
 
-  const responseData = await response.json();
   if (!response.ok) {
-    console.error(`Failed to implement overview: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    const errorText = await response.text();
+    console.error(`Failed to implement edits: ${response.status} ${response.statusText}`);
+    console.error(`Error details: ${errorText}`);
+    return { 
+      success: false, 
+      error: `Server error (${response.status}): ${response.statusText}` 
+    };
   }
-  return responseData;
+  
+  try {
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(`Failed to parse JSON response: ${error}`);
+    return { 
+      success: false, 
+      error: `Failed to parse server response: ${error instanceof Error ? error.message : String(error)}` 
+    };
+  }
 }
 
 async function read_file(file_name: string) {
