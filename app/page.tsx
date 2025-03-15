@@ -1005,7 +1005,9 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <SplitScreenEditor markdown={fileContent} />
+                <div className="h-full">
+                  <SplitScreenEditor markdown={fileContent} />
+                </div>
               )}
             </div>
           </div>
@@ -1063,7 +1065,9 @@ export default function ChatInterface() {
                   </p>
                 </div>
               ) : (
-                <SplitScreenEditor markdown={fileContent} />
+                <div className="h-full">
+                  <SplitScreenEditor markdown={fileContent} />
+                </div>
               )}
             </div>
           </div>
