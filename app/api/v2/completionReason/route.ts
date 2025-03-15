@@ -26,14 +26,15 @@ async function create_file(file_name: string) {
   }
   return responseData;
 }
+async function write_initial_data(file_contents: string, file_name: string) {
+  const data = file_contents;
 
-async function write_initial_data(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "http://localhost:3000/api/v2/models/writeInitialData",
+    "http://localhost:3000/api/v2/reason/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_name, user_inputs }),
+      body: JSON.stringify({ file_name, data }),
     }
   );
   const responseData = await response.json();
@@ -43,14 +44,13 @@ async function write_initial_data(user_inputs: string, file_name: string) {
   }
   return responseData;
 }
-
-async function implement_edits(user_inputs: string, file_name: string) {
+async function publish_new_version(new_file: string, file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/v2/models/implement_edits",
+    "http://localhost:3000/api/v2/reason/publishNewVersion",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_inputs, file_name }),
+      body: JSON.stringify({ new_file, file_name }),
     }
   );
 
@@ -61,7 +61,6 @@ async function implement_edits(user_inputs: string, file_name: string) {
   }
   return responseData;
 }
-
 async function read_file(file_name: string) {
   const response = await fetch(
     `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
@@ -108,7 +107,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please specify the user's name in userName in body, it is required",
+          message:
+            "Please specify the user's name in userName in body, it is required",
         },
         { status: 400 }
       );
@@ -122,8 +122,38 @@ export async function POST(request: Request) {
       {
         role: "system",
         content:
-          `You are an AI Agent for helping the user create Business Requirement Specification (BRS) Documents. You have functions do perform your tasks. You will use this prompt to understand how to create BRS documents. You can create_file to create a document. You will also provide users input for write_initial_data. BRS Documents are just .md files. You must create a file first, but you cannot do anything with the document. You must first call write_initial_data to initialize the document. You will only write the initial data as long as you have the information you need for at least one screen. DO NOT EVER DIRECTLY PUT MARKDOWN TO THE USER. ONLY USE FUNCTIONS. If you want to update the content of the document, it is a different process, you must first get an overview of how you must implement the requested changes. Use implement_edits to make any changes to the file. In user_inputs, DIRECTLY PUT THE USERS MESSAGE, DO NOT MODIFY ANY OF THE USERS WORDS. You will provide what that the user has asked for. You must ask the user ask many questions as you can to make sure you understand what the user wants. Add the file_name of the file that needs to be edited and once you interact with a file, make sure you remember it for future use. A file name must have no spaces and must end in .md, If the user tries to generate a BRS in one message, Let the user know that creating a BRS effectively cannot be done in one message and let them know that they can ask you for questions for writing out data for each screen, and you can make it detailed with their input. Your primary role is to simply extract as much input as you can from the user, making suggestions and improvements frequently. You suggest screens, sections, or items to add in a numbered list format and pass the user input into functions. Remember that previously the user is used to spending 4 weeks detailing everything specifically and working to create a BRS. You should make sure you provide the best service possible to the user to accurately get an idea of what they want. You should sound like a human. It needs to be extremely specific, detailed and follow requirements. You will only do what the user has asked you to do, if the user is vague, you must ask questions until you can accurately create the rest of the BRS, you may provide suggestions to the user on potential screens to add.` +
-          `Context: The users name is ${body.userName}`,
+          `You are an AI Agent for helping the user create Business Requirement Specification (BRS) Documents. You have functions do perform your tasks. You will use this prompt to understand how to create BRS documents, write initial data to them, and to edit them. You can create_file to create a document. You will also provide the initial content of the document for write_initial_data follow the below criteria strictly to correctly create a BRS document. BRS Documents are just .md files, they can only use letters a to z, A to Z, numbers and dashes. Special characters, spaces and underscores are strictly prohibited. You must create a file first, but you cannot do anything with the document. You must first call write_initial_data to initialize the document. You will only write the initial data as long as you have the information you need for at least one screen. If you want to update the content of the document, it is a different process, you must first think of an overview of how you must implement the requested changes. You must ask the user ask many questions as you can to make sure you understand what the user wants. Add the file_name of the file that needs to be edited and once you interact with a file, make sure you remember it for future use. If the user tries to generate a BRS in one message, Let the user know that creating a BRS effectively cannot be done in one message and let them know that they can ask you for questions for writing out data for each screen, and you can make it detailed with their input. Your primary role is to simply extract as much input as you can from the user, making suggestions and improvements frequently. You suggest screens, sections, or items to add in a numbered list format and pass the user input into functions. Remember that previously the user is used to spending 4 weeks detailing everything specifically and working to create a BRS. You should make sure you provide the best service possible to the user to accurately get an idea of what they want. You should sound like a human. It needs to be extremely specific, detailed and follow requirements. You will only do what the user has asked you to do, if the user is vague, you must ask questions until you can accurately create the rest of the BRS, you may provide suggestions to the user on potential screens to add.` +
+          `Creating a Business Requirements Specification (BRS) document in markdown can be done using a document title at the beginning. Start with a concise, simple H1 title (#) that uses 4-5 words (Example: MIS Control Module), it should sound professional, next, an BRS really just consists of different screens. Most BRS\'s have more than 10 screens - that\'s alot! A BRS is just a document that consists of different screens. Each screen has 4 sections. The first is the H2 (##) Heading that is the name of the screen. It is numbered, so the heading is prefixed with a 1. or 2. or 3. etc. It is a short 2-6 word of what the title does. If the screen is part of a larger screen (by context), the current smaller section is in brackets. Think carefully about using this. This would be like the users page, but the current screen is that of a new transaction, this would be "Users (New User)", other examples include "Sales (List View)", "Sales Manager (New Transaction)" etc. The second part of a screen is some extra information. It is usually a simple paragraph explaining the screen. You may use bold text, italics, bullet points or other visual aids to accompany this paragraph in this second section. It needs to be a brief overview. Use simple language that gets the point across without being unprofessional. The third section is the diagram. If this is a UI based function, then you add a diagram with a json markdown code block containing json {"brsDiagram": {}} The fourth and last section of every screen is the extra data. This is the last section, but it the main part of the screen information. It contains all the details and specifications, you must break down, decompose, and fully explain everything that the screen does, including explaining individual functions, adding tables or bullet points to specify data types, validation, inputs etc. You will also break it down fully for each module, each screen has modules and each models must have a properly explained inputs, processes, and outputs. There will always be some for of a short 1-2  sentence description in 1 or 2 lines too.  This could be adding a table for some sample data, tables to specify form field types, bullet points for extra info, etc. If sample data is there, make sure it is at least 7 rows.  Remember the format of the BRS markdown correctly as outlined above. Strictly follow this. You will not use bullet points to display lists with only 1 item, they should never feel empty. Never use the word description or title with a colon to state the title or description. That is implicit with the heading, subheading, and paragraph format outlined here. Remember to use the format of the BRS markdown correctly as outlined above. EXTEMELY IMPORTANT: You should be expected to think beyond what you were asked to do. You must assume and think hard about what the users requirements are, what the user implicitly might want too and add it in. Be detailed about it. For example, if you are asked to "create a one screen library management system only tracking books using crud for storage". Think about every possible function, module down the the very bottom on what the screen/function might be expected to do. Make sure in the brs document you have broken it down as much as possible. For the example, you should create a screen and have individual modules for each function of the screen, creating book entry, updating book details, deleting books, reading books details, etc. each module should contain the inputs, how its meant to be processed the outputs, you should leave no room for assumption for the developer reading the brs, you should be extremely specific and assume details you doesn't know. in the module example for example, you should explain how the module processes user input and how it displays output and, plans for the ui, for example in the read books module it suggests a plan for example you could add "
+                1. The user would be required to input the name of the book they are querying
+                2. The system uses CRUD operation read to fetch attributes IBAN, Name, and Blurb of the book
+                4. The system should validate the input to ensure the book name exists in the database.
+                5. If the book name is found, the system retrieves the book details including IBAN, Name, Blurb, and Tags.
+                6. The retrieved details are displayed in a user-friendly format on the UI.
+                7. If the book name is not found, the system should display an appropriate error message to the user.
+                8. The UI should provide an option to go back to the main menu or perform another search.
+                " Understand this example and think hard about the kind of BRS quality I expect. Know that this is an example and it is different depending on each users requests, but understand what I mean by you should go the extra mile to be specific. Remember that previously the user is used to spending 4 weeks detailing everything specifically and working on it. You should not just create a document with simply what they put. It needs to be extremely specific, detailed and follow requirements. Make sure to include sample data in a table where you think it will look good. All tables must have at least 7 rows. You should never have a BRS that feels empty or looks empty or spaced out. it is not meant to be minimalist, it is meant to be detailed to the core. Make sure a BRS never looks empty to anyone.` +
+          `Context: The users name is ${body.userName}` +
+          `If you want to update the document, you must use publish_new verion, warning: the new document you put will completely overwrite the existing contents of the document` +
+          `You receive change requests and the current document content. 
+              You must implement only the requested changes while preserving all existing content unless explicitly asked to modify it. 
+              Each screen must maintain the format: 
+              H2 heading (numbered), 
+              optional description, diagram section, 
+              and extra data section.  
+
+              Before you update the document at all, you MUST read the document from top to bottom and fully understand what you have to change, always read the contents of the document before updating it to prevent accidently losing data.
+              Publishing a new version of the document will completely overwrite the existing contents of the document. So please, please and please, be careful when updating the document.
+
+              Please update the document following these requirements:
+              1. Keep the existing document structure
+              2. Only make changes specified in the overview
+              3. Maintain all existing content unless explicitly asked to change/remove it
+              4. Return the complete updated document
+              5. Make sure to read the document before updating it to prevent accidental data loss.
+              6. If you are unsure about any changes, ask the user for clarification.
+              Extra Important things to follow:
+              7. Do not prefix any part of the BRS with a heading (Example: DO NOT PUT DESCRIPTION OR TITLE BEFORE THE TEXT)
+              8. Diagrams are code blocks containing JSON "{"brsDiagram": {}" Do not modify this blank diagram template.`,
       },
       ...userMessages,
     ];
@@ -158,7 +188,9 @@ export async function POST(request: Request) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
 
             // Filter out function messages before sending to OpenAI
-            const apiMessages = conversation.filter(msg => msg.role !== "function");
+            const apiMessages = conversation.filter(
+              (msg) => msg.role !== "function"
+            );
 
             const openAiResponse = await fetch(
               "https://api.openai.com/v1/chat/completions",
@@ -170,7 +202,7 @@ export async function POST(request: Request) {
                 },
                 body: JSON.stringify({
                   model: "o3-mini",
-                  reasoning_effort: "high",
+                  reasoning_effort: "medium",
                   messages: apiMessages, // Use filtered messages
                   functions: [
                     {
@@ -197,14 +229,14 @@ export async function POST(request: Request) {
                       },
                     },
                     {
-                      name: "implement_edits",
+                      name: "publish_new_version",
                       description:
-                        "Update the BRS document with the user's requested changes. Provide the user's inputs",
+                        "Update the BRS document with the user's requested changes. Provide the full, updated version of the document.",
                       parameters: {
                         type: "object",
-                        required: ["user_inputs", "file_name"],
+                        required: ["new_file", "file_name"],
                         properties: {
-                          user_inputs: { type: "string" },
+                          new_file: { type: "string" },
                           file_name: { type: "string" },
                         },
                       },
@@ -212,12 +244,12 @@ export async function POST(request: Request) {
                     {
                       name: "write_initial_data",
                       description:
-                        "Writes initial data for version one for a file. You must call this to write initial data to a .md BRS file, provide the user input, what they asked for without changing it and the name of the file that you created",
+                        "Writes initial data for version one for a file. You must call this to write initial data to a .md BRS file that you created",
                       parameters: {
                         type: "object",
-                        required: ["user_inputs", "file_name"],
+                        required: ["file_contents", "file_name"],
                         properties: {
-                          user_inputs: { type: "string" },
+                          file_contents: { type: "string" },
                           file_name: { type: "string" },
                         },
                       },
@@ -274,10 +306,10 @@ export async function POST(request: Request) {
               } else if (name === "write_initial_data") {
                 functionResult = await write_initial_data(
                   functionArgs.file_name,
-                  functionArgs.data
+                  functionArgs.file_contents
                 );
-              } else if (name === "implement_edits") {
-                functionResult = await implement_edits(
+              } else if (name === "publish_new_version") {
+                functionResult = await publish_new_version(
                   functionArgs.user_inputs,
                   functionArgs.file_name
                 );
@@ -330,7 +362,9 @@ export async function POST(request: Request) {
               console.log();
               conversation.push({
                 role: "assistant",
-                content: `Function ${name} was called with result: ${JSON.stringify(functionResult)}`,
+                content: `Function ${name} was called with result: ${JSON.stringify(
+                  functionResult
+                )}`,
               });
             } else {
               const text = message.content || "";
