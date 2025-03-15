@@ -127,7 +127,7 @@ ${overview}
     // put the new version number in a constant, just the integer
 
     const publishNewVersion = await fetch(
-      "https://brs-agent.datamation.lk/api/data/publishNewVersion",
+      "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

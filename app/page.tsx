@@ -208,7 +208,7 @@ export default function ChatInterface() {
     } else if (newMessage.content.startsWith("/create")) {
       async function createFile(file_name: string) {
         const response = await fetch(
-          "https://brs-agent.datamation.lk/api/data/createFile",
+          "https://brs-agent.datamation.lk/api/legacy/data/createFile",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -628,7 +628,7 @@ export default function ChatInterface() {
   useEffect(() => {
     if (splitView && openedDocument) {
       setIsFileLoading(true);
-      fetch(`/api/data/readFile?file_name=${openedDocument}`)
+      fetch(`/api/legacy/data/readFile?file_name=${openedDocument}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success) setFileContent(data.data);

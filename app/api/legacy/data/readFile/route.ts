@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       success: true,
       latestVersion: `v${latestVersion}`,
       data: latestVersionData,
-      notes: "You are seeing the latest version of the file as data. To see previous versions, call the /api/data/readFileVersions endpoint",
+      notes: "You are seeing the latest version of the file as data. To see previous versions, call the /api/legacy/data/readFileVersions endpoint",
     });
   } catch (error) {
     return Response.json({ code: 404, message: "file not found" });
