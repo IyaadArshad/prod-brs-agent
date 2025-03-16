@@ -162,159 +162,158 @@ export default function ChatInterface() {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
+    const userInput = message.trim();
+    setMessage("");
+    
+    // Handle commands without adding them to chat
+    if (userInput.startsWith("/")) {
+      const commandParts = userInput.split(" ");
+      const command = commandParts[0].toLowerCase();
+      
+      if (command === "/help" || userInput === "/") {
+        // Process help command silently
+        // Only show output for errors (none for help)
+        const helpMessage =
+          "I can help you with the following commands:\n\n **/help** - Show available commands\n\n/**settings** - Configure options\n\n/**assisted** [filename] - Switch to Assisted View\n\n**/create** [filename] - Create new document\n\n**/open** [filename] - Open Editor Files\n\n Please make sure you type out **full commands.** The command menu only serves for reference purposes";
+        
+        await new Promise((resolve) => setTimeout(resolve, 1700));
+        let currentMessage = "";
+        const words = helpMessage.split(" ");
+        for (let i = 0; i < words.length; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+          currentMessage += (i === 0 ? "" : " ") + words[i];
+          setMessages((prev) => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage && lastMessage.role === "assistant") {
+              return [
+                ...prev.slice(0, -1),
+                { ...lastMessage, content: currentMessage },
+              ];
+            } else {
+              return [
+                ...prev,
+                {
+                  id: Date.now().toString(),
+                  content: currentMessage,
+                  role: "assistant",
+                  timestamp: Date.now(),
+                },
+              ];
+            }
+          });
+        }
+        setIsConversationStarted(true);
+        return;
+      } else if (command === "/create") {
+        setIsConversationStarted(true);
+        async function createFile(file_name: string) {
+          const response = await fetch(
+            "https://brs-agent.datamation.lk/api/legacy/data/createFile",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ file_name }),
+            }
+          );
+          const responseData = await response.json();
+
+          if (!response.ok) {
+            return { message: responseData.message };
+          }
+          return responseData.message;
+        }
+
+        // Don't display invalid format messages only if there's an error
+        if (commandParts.length !== 2 || !commandParts[1].endsWith(".md")) {
+          await new Promise((resolve) => setTimeout(resolve, 950));
+          let currentMessage = "";
+          const words =
+            "Invalid format: \n\n Please provide a single name for a file. \n\n -It must end in '.md' \n\n -Use dashes, underscores, and characters only \n\n -The file name cannot have spaces".split(
+              " "
+            );
+          for (let i = 0; i < words.length; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 45));
+            currentMessage += (i === 0 ? "" : " ") + words[i];
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                content: currentMessage,
+                role: "assistant",
+                timestamp: Date.now(),
+              },
+            ]);
+            break; // Only need to set it once
+          }
+        } else {
+          // Create file but only show response on error
+          const response = await createFile(commandParts[1]);
+          if (response.includes("Error") || response.includes("failed") || response.includes("Invalid")) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                content: response,
+                role: "assistant",
+                timestamp: Date.now(),
+              },
+            ]);
+          }
+        }
+        return;
+      } else if (command === "/open") {
+        setIsConversationStarted(true);
+        const parts = userInput.split(" ");
+        if (parts.length === 2 && (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))) {
+          setSplitView(true);
+          setOpenedDocument(parts[1]); // Set the opened document name
+        } else {
+          // Only show a message for invalid format
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now().toString(),
+              content: "Invalid /open command format. Provide one file name ending with .md or .pdf",
+              role: "assistant",
+              timestamp: Date.now(),
+            },
+          ]);
+        }
+        return;
+      } else if (command === "/exit") {
+        setSplitView(false);
+        return;
+      } else if (command === "/assisted") {
+        // Handle assisted command - assuming this is for future implementation
+        // Only show errors if needed
+        return;
+      }
+      
+      // If we get here, it's an unrecognized command - show error
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: `Unknown command: ${command}. Type /help to see available commands.`,
+          role: "assistant",
+          timestamp: Date.now(),
+        },
+      ]);
+      setIsConversationStarted(true);
+      return;
+    }
+
+    // For non-command messages, maintain existing behavior
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: message.trim(),
+      content: userInput,
       role: "user",
       timestamp: Date.now(),
     };
 
     setMessages((prev) => [...prev, newMessage]);
-    setMessage("");
     setIsConversationStarted(true);
-
-    if (newMessage.content.startsWith("/help") || newMessage.content === "/") {
-      // if running help command
-      // print help message to chat
-      const helpMessage =
-        "I can help you with the following commands:\n\n **/help** - Show available commands\n\n/**settings** - Configure options\n\n/**assisted** [filename] - Switch to Assisted View\n\n**/create** [filename] - Create new document\n\n**/open** [filename] - Open Editor Files\n\n Please make sure you type out **full commands.** The command menu only serves for reference purposes";
-      // 1.5 second delay
-      await new Promise((resolve) => setTimeout(resolve, 1700));
-      let currentMessage = "";
-      const words = helpMessage.split(" ");
-      for (let i = 0; i < words.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 20));
-        currentMessage += (i === 0 ? "" : " ") + words[i];
-        setMessages((prev) => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage && lastMessage.role === "assistant") {
-            return [
-              ...prev.slice(0, -1),
-              { ...lastMessage, content: currentMessage },
-            ];
-          } else {
-            return [
-              ...prev,
-              {
-                id: (Date.now() + 1).toString(),
-                content: currentMessage,
-                role: "assistant",
-                timestamp: Date.now(),
-              },
-            ];
-          }
-        });
-      }
-    } else if (newMessage.content.startsWith("/create")) {
-      async function createFile(file_name: string) {
-        const response = await fetch(
-          "https://brs-agent.datamation.lk/api/legacy/data/createFile",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ file_name }),
-          }
-        );
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          return { message: responseData.message };
-        }
-        return responseData.message;
-      }
-
-      const parts = newMessage.content.split(" ");
-      if (parts.length !== 2 || !parts[1].endsWith(".md")) {
-        await new Promise((resolve) => setTimeout(resolve, 950));
-        let currentMessage = "";
-        const words =
-          "Invalid format: \n\n Please provide a single name for a file. \n\n -It must end in '.md' \n\n -Use dashes, underscores, and characters only \n\n -The file name cannot have spaces".split(
-            " "
-          );
-        for (let i = 0; i < words.length; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 45));
-          currentMessage += (i === 0 ? "" : " ") + words[i];
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage && lastMessage.role === "assistant") {
-              return [
-                ...prev.slice(0, -1),
-                { ...lastMessage, content: currentMessage },
-              ];
-            } else {
-              return [
-                ...prev,
-                {
-                  id: (Date.now() + 1).toString(),
-                  content: currentMessage,
-                  role: "assistant",
-                  timestamp: Date.now(),
-                },
-              ];
-            }
-          });
-        }
-      } else {
-        // create file and return output
-        const response = await createFile(parts[1]);
-        let currentMessage = "";
-        // Add an initial delay for fade in effect
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        const words = response.split(" ");
-        for (let i = 0; i < words.length; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 95));
-          currentMessage += (i === 0 ? "" : " ") + words[i];
-          setMessages((prev) => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage && lastMessage.role === "assistant") {
-              return [
-                ...prev.slice(0, -1),
-                { ...lastMessage, content: currentMessage },
-              ];
-            } else {
-              return [
-                ...prev,
-                {
-                  id: (Date.now() + 1).toString(),
-                  content: currentMessage,
-                  role: "assistant",
-                  timestamp: Date.now(),
-                },
-              ];
-            }
-          });
-        }
-      }
-    } else if (newMessage.content.startsWith("/open")) {
-      const parts = newMessage.content.split(" ");
-      let assistantMsg = "";
-      if (
-        parts.length === 2 &&
-        (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))
-      ) {
-        setSplitView(true);
-        setOpenedDocument(parts[1]); // Set the opened document name
-        assistantMsg = `Opening file: ${parts[1]}`;
-      } else {
-        assistantMsg =
-          "Invalid /open command format. Provide one file name ending with .md or .pdf";
-      }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          content: assistantMsg,
-          role: "assistant",
-          timestamp: Date.now(),
-        },
-      ]);
-      return;
-    } else if (newMessage.content.startsWith("/exit")) {
-      setSplitView(false);
-      return;
-    } else {
-      await fetchAIResponse(newMessage);
-    }
+    await fetchAIResponse(newMessage);
   };
 
   function stripFunctionCallDivs(content: string): string {
