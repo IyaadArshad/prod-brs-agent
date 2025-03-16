@@ -8,7 +8,7 @@ import PocketBase from "pocketbase";
  * id is the pocketbase assigned unique id of the record
  * data is the file data, including previous versions in json. example in a moment.
  * isLocked is when the file is being edited by a model, the file is locked
- * 
+ *
  * data contents looks something like this:
  * {
  *  name: "document.md",
@@ -18,7 +18,7 @@ import PocketBase from "pocketbase";
  *          2: "this is version 2, the latest version, also in markdown"
  *      }
  *  }
- * 
+ *
  * what I need this API route to do is to create a new version and publish the new specified data
  */
 
@@ -38,7 +38,10 @@ export async function POST(request: Request) {
   }
 
   if (!process.env.POCKETBASE_SERVER_URL) {
-    return Response.json({ code: 500, message: "Missing PocketBase server URL" });
+    return Response.json({
+      code: 500,
+      message: "Missing PocketBase server URL",
+    });
   }
 
   async function FetchId(file_name: string): Promise<Response> {
@@ -58,16 +61,16 @@ export async function POST(request: Request) {
   if (fetchIdData.code === 404) {
     return Response.json({
       success: false,
-      message: "File not found"
-    })
+      message: "File not found",
+    });
   }
 
   const id = fetchIdData.id;
-  
+
   const existingRecord = await pb.collection("files").getOne(id);
   const recordData = existingRecord.data || {
     latestVersion: 0,
-    versions: {}
+    versions: {},
   };
   let currentLatest = recordData.latestVersion || 0;
 
@@ -84,9 +87,9 @@ export async function POST(request: Request) {
   recordData.versions = recordData.versions || {};
   recordData.versions[recordData.latestVersion] = data;
 
-  await pb.collection('files').update(id, {
+  await pb.collection("files").update(id, {
     file_name,
-    data: recordData
+    data: recordData,
   });
 
   return Response.json({

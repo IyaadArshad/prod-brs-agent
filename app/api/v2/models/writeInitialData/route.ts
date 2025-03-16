@@ -134,7 +134,7 @@ export async function POST(request: Request) {
   try {
     recordData.latestVersion = 1;
     const data = response.choices[0].message.content;
-    
+
     // Parse the JSON to extract just the markdown content
     let markdownContent;
     try {
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       }
       const parsedData = JSON.parse(data);
       markdownContent = parsedData.newVersion;
-      
+
       if (!markdownContent) {
         throw new Error("No markdown content found in the response");
       }
@@ -152,10 +152,10 @@ export async function POST(request: Request) {
       return Response.json({
         success: false,
         message: "Failed to parse the document content",
-        error: (parseError as Error).message
+        error: (parseError as Error).message,
       });
     }
-    
+
     // Store only the markdown content in the versions
     recordData.versions = { 1: markdownContent };
 

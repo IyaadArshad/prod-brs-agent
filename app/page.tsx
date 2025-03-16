@@ -351,11 +351,11 @@ export default function ChatInterface() {
       }));
 
       // Dynamically choose API endpoint based on button selections
-      const endpoint = selectedButtons.reason 
+      const endpoint = selectedButtons.reason
         ? "/api/v2/completionReason"
         : selectedButtons.search
-          ? "/api/v2/completionSearch" 
-          : "/api/v2/completion";
+        ? "/api/v2/completionSearch"
+        : "/api/v2/completion";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -364,11 +364,11 @@ export default function ChatInterface() {
         },
         body: JSON.stringify({
           messages: [
-        ...cleanedMessages,
-        {
-          role: userMessage.role,
-          content: userMessage.content,
-        },
+            ...cleanedMessages,
+            {
+              role: userMessage.role,
+              content: userMessage.content,
+            },
           ],
           search: selectedButtons.search || false,
           userName: user?.name || "",
@@ -838,7 +838,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   search: !prev.search,
-                                  reason: false // Disable reason when toggling search
+                                  reason: false, // Disable reason when toggling search
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -871,7 +871,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   reason: !prev.reason,
-                                  search: false // Disable search when toggling reason
+                                  search: false, // Disable search when toggling reason
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1209,7 +1209,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   search: !prev.search,
-                                  reason: false // Disable reason when toggling search
+                                  reason: false, // Disable reason when toggling search
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1242,7 +1242,7 @@ export default function ChatInterface() {
                                 setSelectedButtons((prev) => ({
                                   ...prev,
                                   reason: !prev.reason,
-                                  search: false // Disable search when toggling reason
+                                  search: false, // Disable search when toggling reason
                                 }))
                               }
                               className={`flex h-9 items-center justify-center rounded-full ${
@@ -1458,7 +1458,7 @@ export default function ChatInterface() {
                           setSelectedButtons((prev) => ({
                             ...prev,
                             search: !prev.search,
-                            reason: false // Disable reason when toggling search
+                            reason: false, // Disable reason when toggling search
                           }))
                         }
                         className={`flex h-9 items-center justify-center rounded-full ${
@@ -1491,7 +1491,7 @@ export default function ChatInterface() {
                           setSelectedButtons((prev) => ({
                             ...prev,
                             reason: !prev.reason,
-                            search: false // Disable search when toggling reason
+                            search: false, // Disable search when toggling reason
                           }))
                         }
                         className={`flex h-9 items-center justify-center rounded-full ${

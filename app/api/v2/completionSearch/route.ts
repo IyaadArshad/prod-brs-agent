@@ -28,7 +28,10 @@ async function create_file(file_name: string) {
   }
   if (!response.ok) {
     console.error(`Failed to create file: ${response.statusText}`);
-    return { success: false, error: responseData.message || "No error message" };
+    return {
+      success: false,
+      error: responseData.message || "No error message",
+    };
   }
   return responseData;
 }
@@ -103,7 +106,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please specify the user's name in userName in body, it is required",
+          message:
+            "Please specify the user's name in userName in body, it is required",
         },
         { status: 400 }
       );

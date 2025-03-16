@@ -29,7 +29,9 @@ export async function POST(request: Request) {
   try {
     // Step 2: Read the file contents and store result in file_contents
     const file_contents_fetch = await fetch(
-      `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${encodeURIComponent(file_name)}`,
+      `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${encodeURIComponent(
+        file_name
+      )}`,
       {
         headers: { "Cache-Control": "no-cache" },
       }
