@@ -38,7 +38,7 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "http://localhost:3000/api/v2/models/writeInitialData",
+    "https://brs-agent.datamation.lk/api/v2/models/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -280,7 +280,7 @@ export async function POST(request: Request) {
               } else if (name === "search") {
                 try {
                   const response = await fetch(
-                    `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
+                    `https://brs-agent.datamation.lk/api/v1/search?query=${functionArgs.query}`,
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },

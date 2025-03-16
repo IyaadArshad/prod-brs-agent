@@ -444,7 +444,7 @@ export async function POST(request: Request) {
                 } else if (name === "search") {
                   try {
                     const response = await fetch(
-                      `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
+                      `https://brs-agent.datamation.lk/api/v1/search?query=${functionArgs.query}`,
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },
