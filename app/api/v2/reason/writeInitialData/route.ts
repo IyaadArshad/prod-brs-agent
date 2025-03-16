@@ -3,17 +3,35 @@ import PocketBase from "pocketbase";
 const pb = new PocketBase(`${process.env.POCKETBASE_SERVER_URL}`);
 
 export async function POST(request: Request) {
+  console.log("reason/writeInitialData API called");
   let body;
+  
   try {
     body = await request.json();
+    console.log("Request body received:", JSON.stringify({
+      has_file_name: !!body.file_name,
+      has_data: !!body.data,
+      data_length: body.data ? body.data.length : 0
+    }));
+    
     if (!body.file_name || !body.data) {
-      return Response.json({
-        code: 400,
-        message: "file_name and data are required",
+      console.error("Missing required fields:", {
+        has_file_name: !!body.file_name, 
+        has_data: !!body.data
+      });
+      return Response.json({ 
+        success: false, 
+        code: 400, 
+        message: "file_name and data are required" 
       });
     }
   } catch (error) {
-    return Response.json({ code: 400, message: "Invalid JSON payload" });
+    console.error("Error parsing request JSON:", error);
+    return Response.json({ 
+      success: false, 
+      code: 400, 
+      message: "Invalid JSON payload" 
+    });
   }
 
   const file_name = body.file_name;
@@ -61,15 +79,25 @@ export async function POST(request: Request) {
   recordData.latestVersion = 1;
   recordData.versions = { 1: data };
 
-  await pb.collection("files").update(id, {
-    file_name,
-    data: recordData,
-  });
+  try {
+    await pb.collection("files").update(id, {
+      file_name,
+      data: recordData,
+    });
 
-  return Response.json({
-    success: "true",
-    message: `**${file_name}** has been successfully initialized`,
-    systemMessage: `The first version is now v1. Use implement_edits to publish subsequent versions.`,
-    file_name,
-  });
+    return Response.json({
+      success: "true",
+      message: `**${file_name}** has been successfully initialized`,
+      systemMessage: `The first version is now v1. Use implement_edits to publish subsequent versions.`,
+      file_name,
+      content: data,
+    });
+  } catch (error) {
+    console.error("Error updating record:", error);
+    return Response.json({ 
+      success: false, 
+      code: 500,
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    });
+  }
 }

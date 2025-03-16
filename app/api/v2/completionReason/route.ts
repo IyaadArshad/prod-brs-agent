@@ -26,41 +26,75 @@ async function create_file(file_name: string) {
   }
   return responseData;
 }
+
 async function write_initial_data(file_contents: string, file_name: string) {
-  const data = file_contents;
-
+  // Change the function signature to match what the model expects
   const response = await fetch(
-    "http://localhost:3000/api/v2/reason/writeInitialData",
+    "https://brs-agent.datamation.lk/api/v2/reason/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_name, data }),
+      body: JSON.stringify({ file_name, data: file_contents }),
     }
   );
-  const responseData = await response.json();
+
   if (!response.ok) {
-    console.error(`Failed to write initial data: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    const errorText = await response.text();
+    console.error(`Failed to write initial data: ${response.status} ${response.statusText}`);
+    console.error(`Error details: ${errorText}`);
+    return { 
+      success: false, 
+      error: `Server error (${response.status}): ${response.statusText}` 
+    };
   }
-  return responseData;
+  
+  try {
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(`Failed to parse JSON response in write_initial_data: ${error}`);
+    return { 
+      success: false, 
+      error: `Failed to parse server response: ${error instanceof Error ? error.message : String(error)}` 
+    };
+  }
 }
+
 async function publish_new_version(new_file: string, file_name: string) {
+  // Standardize parameter naming to avoid confusion
+  const data = new_file;
+  
   const response = await fetch(
-    "http://localhost:3000/api/v2/reason/publishNewVersion",
+    "https://brs-agent.datamation.lk/api/v2/reason/publishNewVersion",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ new_file, file_name }),
+      body: JSON.stringify({ file_name, data }), // Consistent parameter names
     }
   );
 
-  const responseData = await response.json();
   if (!response.ok) {
-    console.error(`Failed to implement overview: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    const errorText = await response.text();
+    console.error(`Failed to publish new version: ${response.status} ${response.statusText}`);
+    console.error(`Error details: ${errorText}`);
+    return { 
+      success: false, 
+      error: `Server error (${response.status}): ${response.statusText}` 
+    };
   }
-  return responseData;
+  
+  try {
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(`Failed to parse JSON response in publish_new_version: ${error}`);
+    return { 
+      success: false, 
+      error: `Failed to parse server response: ${error instanceof Error ? error.message : String(error)}` 
+    };
+  }
 }
+
 async function read_file(file_name: string) {
   const response = await fetch(
     `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
@@ -118,6 +152,34 @@ export async function POST(request: Request) {
     console.log(`v2 Completion Endpoint Call [Reasoning Model]`);
     console.log();
 
+    // Check if the user message contains reference to an existing file
+    // This is a simple heuristic - we look for .md file mentions in the last message
+    const potentialFileNames = extractPotentialFilenames(userMessages);
+    let existingFileContent = null;
+    let existingFileName = null;
+    
+    // If we found potential file names, try to read them and attach the content
+    if (potentialFileNames.length > 0) {
+      console.log("Detected potential file references:", potentialFileNames);
+      
+      // Try each file name until we find one that exists
+      for (const fileName of potentialFileNames) {
+        try {
+          console.log(`Attempting to read file: ${fileName}`);
+          const fileResult = await read_file(fileName);
+          
+          if (fileResult.success) {
+            existingFileContent = fileResult.data;
+            existingFileName = fileName;
+            console.log(`Successfully read file: ${fileName}`);
+            break;
+          }
+        } catch (error) {
+          console.log(`Failed to read file ${fileName}:`, error);
+        }
+      }
+    }
+    
     let conversation: Message[] = [
       {
         role: "system",
@@ -167,6 +229,10 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    // Add a mechanism to prevent loops - track function calls
+    const functionCallHistory: {name: string, args: {file_name?: string}}[] = [];
+    const maxConsecutiveCalls = 2; // Maximum number of consecutive identical calls allowed
 
     const streamingResponse = new Response(
       new ReadableStream({
@@ -280,67 +346,128 @@ export async function POST(request: Request) {
               const { name, arguments: args } = message.function_call;
               const functionArgs = JSON.parse(args);
 
-              functionCallLogs.push({ name, arguments: functionArgs });
-
-              let functionResult;
-
-              console.log();
-              console.log("Function Call:");
-              console.log("Name: ", name);
-              console.log("Parameters: ", functionArgs);
-              console.log();
-
-              // Send "function" chunk
-              controller.enqueue(
-                new TextEncoder().encode(
-                  `data: ${JSON.stringify({
-                    type: "function",
-                    data: name,
-                    parameters: functionArgs, // Include the function parameters
-                  })}\n\n`
-                )
-              );
-
-              if (name === "create_brs_file") {
-                functionResult = await create_file(functionArgs.file_name);
-              } else if (name === "write_initial_data") {
-                functionResult = await write_initial_data(
-                  functionArgs.file_name,
-                  functionArgs.file_contents
-                );
-              } else if (name === "publish_new_version") {
-                functionResult = await publish_new_version(
-                  functionArgs.user_inputs,
-                  functionArgs.file_name
-                );
-              } else if (name === "read_file") {
-                functionResult = await read_file(functionArgs.file_name);
-              } else if (name === "search") {
-                try {
-                  const response = await fetch(
-                    `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
-                    {
-                      method: "GET",
-                      headers: { "Content-Type": "application/json" },
-                    }
-                  );
-                  console.log("RESPONSE SEARCH: ", response);
-                  const responseData = await response.text();
-                  console.log("RESPONSE SEARCH DATA: ", responseData);
-                  functionResult = responseData
-                    ? JSON.parse(responseData)
-                    : { success: false, error: "Empty response" };
-                } catch (error) {
-                  console.error(`Failed to perform search: ${error}`);
-                  functionResult = {
-                    success: false,
-                    error: "Failed to process search results",
-                  };
+              // Check for loops in function calls
+              if (functionCallHistory.length > 0) {
+                const lastCall = functionCallHistory[functionCallHistory.length - 1];
+                let consecutiveCallCount = 1;
+                
+                // Count identical consecutive calls
+                for (let i = functionCallHistory.length - 2; i >= 0; i--) {
+                  const call = functionCallHistory[i];
+                  if (call.name === name && 
+                      call.args.file_name === functionArgs.file_name) {
+                    consecutiveCallCount++;
+                  } else {
+                    break;
+                  }
                 }
-              } else {
-                console.error(`Function ${name} not found.`);
-                throw new Error(`Function ${name} not found.`);
+                
+                // If we detect a loop, send an error message and break the loop
+                if (consecutiveCallCount >= maxConsecutiveCalls && 
+                    (name === 'create_brs_file' || name === 'write_initial_data' || name === 'publish_new_version')) {
+                  console.warn(`Detected function call loop: ${name} called ${consecutiveCallCount} times consecutively`);
+                  
+                  // Send a special message to break the loop
+                  controller.enqueue(
+                    new TextEncoder().encode(
+                      `data: ${JSON.stringify({
+                        type: "functionResult",
+                        data: {
+                          success: false,
+                          error: `Detected a potential loop with function ${name}. Please try a different approach.`,
+                          loopDetected: true
+                        },
+                      })}\n\n`
+                    )
+                  );
+                  
+                  conversation.push({
+                    role: "assistant",
+                    content: `Function ${name} was called too many times in succession. I've detected a potential loop and stopped it. Please try a different approach or command.`,
+                  });
+                  
+                  controller.enqueue(
+                    new TextEncoder().encode(
+                      `data: ${JSON.stringify({
+                        type: "message",
+                        content: `I've detected a loop in my operations with the file "${functionArgs.file_name}". Let's try a different approach. Could you please give me a new instruction for what you'd like to do with this document?`,
+                      })}\n\n`
+                    )
+                  );
+                  
+                  controller.enqueue(
+                    new TextEncoder().encode(
+                      `data: ${JSON.stringify({ type: "end" })}\n\n`
+                    )
+                  );
+                  controller.close();
+                  return;
+                }
               }
+              
+              // Track this function call
+              functionCallHistory.push({ name, args: { file_name: functionArgs.file_name } });
+
+              const functionResult = await (async () => {
+                console.log();
+                console.log("Function Call:");
+                console.log("Name: ", name);
+                console.log("Parameters: ", functionArgs);
+                console.log();
+
+                // Send "function" chunk
+                controller.enqueue(
+                  new TextEncoder().encode(
+                    `data: ${JSON.stringify({
+                      type: "function",
+                      data: name,
+                      parameters: functionArgs, // Include the function parameters
+                    })}\n\n`
+                  )
+                );
+
+                if (name === "create_brs_file") {
+                  return await create_file(functionArgs.file_name);
+                } else if (name === "write_initial_data") {
+                  return await write_initial_data(
+                    functionArgs.file_contents, 
+                    functionArgs.file_name
+                  );
+                } else if (name === "publish_new_version") {
+                  // Fix parameter mismatch - use new_file instead of user_inputs
+                  return await publish_new_version(
+                    functionArgs.new_file,  // <-- CHANGED FROM user_inputs
+                    functionArgs.file_name
+                  );
+                } else if (name === "read_file") {
+                  return await read_file(functionArgs.file_name);
+                } else if (name === "search") {
+                  try {
+                    const response = await fetch(
+                      `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
+                      {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                      }
+                    );
+                    console.log("RESPONSE SEARCH: ", response);
+                    const responseData = await response.text();
+                    console.log("RESPONSE SEARCH DATA: ", responseData);
+                    return responseData
+                      ? JSON.parse(responseData)
+                      : { success: false, error: "Empty response" };
+                  } catch (error) {
+                    console.error(`Failed to perform search: ${error}`);
+                    return {
+                      success: false,
+                      error: "Failed to process search results",
+                    };
+                  }
+                } else {
+                  console.error(`Function ${name} not found.`);
+                  throw new Error(`Function ${name} not found.`);
+                }
+              })();
 
               sendVerbose({
                 message: "Function called",
@@ -367,6 +494,37 @@ export async function POST(request: Request) {
                 )}`,
               });
             } else {
+              // If no function was called, and we've detected a file but never read it explicitly,
+              // we should force a read_file call before responding
+              if (existingFileName && !functionCallHistory.some(call => 
+                  call.name === 'read_file' && call.args.file_name === existingFileName)) {
+                
+                console.log(`File ${existingFileName} was referenced but never explicitly read. Reading it now.`);
+                
+                const fileResult = await read_file(existingFileName);
+                
+                // Only process the read if it succeeded
+                if (fileResult.success) {
+                  // Track this function call
+                  functionCallHistory.push({ name: 'read_file', args: { file_name: existingFileName } });
+                  
+                  // Add the file contents to the conversation
+                  conversation.push({
+                    role: "assistant",
+                    content: `Let me check the current content of ${existingFileName} before proceeding.`,
+                  });
+                  
+                  conversation.push({
+                    role: "assistant",
+                    content: `I've read the file ${existingFileName} and now understand its current structure and content.`,
+                  });
+                  
+                  // Continue the conversation with OpenAI
+                  continue;
+                }
+              }
+
+              // Normal response handling
               const text = message.content || "";
               // Send final "message" chunk
               controller.enqueue(
@@ -402,4 +560,48 @@ export async function POST(request: Request) {
     console.error("Error in POST handler:", err);
     return NextResponse.json({ error: err }, { status: 500 });
   }
+}
+
+// Helper function to extract potential file names from user messages
+function extractPotentialFilenames(messages: any[]): string[] {
+  if (!messages || messages.length === 0) return [];
+  
+  const fileNames: string[] = [];
+  
+  // Look at the last few messages, prioritizing the most recent one
+  const recentMessages = messages.slice(-3).reverse();
+  
+  for (const message of recentMessages) {
+    if (message.role !== 'user' || !message.content) continue;
+    
+    // Look for patterns like "file.md", "file-name.md", etc.
+    const content = message.content;
+    const mdFileRegex = /\b([a-zA-Z0-9-]+\.md)\b/g;
+    let match;
+    
+    while ((match = mdFileRegex.exec(content)) !== null) {
+      const fileName = match[1];
+      if (!fileNames.includes(fileName)) {
+        fileNames.push(fileName);
+      }
+    }
+    
+    // Also look for phrases like "remove from X" or "edit X" where X might be a file name
+    const actionPhrases = [
+      /\b(?:edit|modify|update|change|remove from|delete from|add to)\s+([a-zA-Z0-9-]+\.md)\b/gi,
+      /\bin\s+([a-zA-Z0-9-]+\.md)\b/gi,
+      /\bfile\s+([a-zA-Z0-9-]+\.md)\b/gi,
+    ];
+    
+    for (const regex of actionPhrases) {
+      while ((match = regex.exec(content)) !== null) {
+        const fileName = match[1];
+        if (!fileNames.includes(fileName)) {
+          fileNames.push(fileName);
+        }
+      }
+    }
+  }
+  
+  return fileNames;
 }
