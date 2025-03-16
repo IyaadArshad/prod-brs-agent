@@ -42,15 +42,30 @@ async function write_initial_data(user_inputs: string, file_name: string) {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_name, user_inputs }),
+      body: JSON.stringify({ user_inputs, file_name }),
     }
   );
-  const responseData = await response.json();
+
   if (!response.ok) {
-    console.error(`Failed to write initial data: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    const errorText = await response.text();
+    console.error(`Failed to write initial data: ${response.status} ${response.statusText}`);
+    console.error(`Error details: ${errorText}`);
+    return { 
+      success: false, 
+      error: `Server error (${response.status}): ${response.statusText}` 
+    };
   }
-  return responseData;
+  
+  try {
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(`Failed to parse JSON response in write_initial_data: ${error}`);
+    return { 
+      success: false, 
+      error: `Failed to parse server response: ${error instanceof Error ? error.message : String(error)}` 
+    };
+  }
 }
 
 async function implement_edits(user_inputs: string, file_name: string) {
@@ -63,12 +78,30 @@ async function implement_edits(user_inputs: string, file_name: string) {
     }
   );
 
-  const responseData = await response.json();
   if (!response.ok) {
-    console.error(`Failed to implement overview: ${response.statusText}`);
-    return { success: false, error: responseData.message };
+    const errorText = await response.text();
+    console.error(
+      `Failed to implement edits: ${response.status} ${response.statusText}`
+    );
+    console.error(`Error details: ${errorText}`);
+    return {
+      success: false,
+      error: `Server error (${response.status}): ${response.statusText}`,
+    };
   }
-  return responseData;
+
+  try {
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(`Failed to parse JSON response: ${error}`);
+    return {
+      success: false,
+      error: `Failed to parse server response: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    };
+  }
 }
 
 async function read_file(file_name: string) {
@@ -267,8 +300,8 @@ export async function POST(request: Request) {
                 functionResult = await create_file(functionArgs.file_name);
               } else if (name === "write_initial_data") {
                 functionResult = await write_initial_data(
-                  functionArgs.file_name,
-                  functionArgs.data
+                  functionArgs.user_inputs,
+                  functionArgs.file_name
                 );
               } else if (name === "implement_edits") {
                 functionResult = await implement_edits(
