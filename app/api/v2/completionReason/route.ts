@@ -12,7 +12,7 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "http://localhost:3000/data/createFile",
+    "http://localhost:3000/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
