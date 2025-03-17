@@ -11,7 +11,7 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/legacy/data/createFile",
+    "http://localhost:3000/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,7 +38,7 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/v2/models/writeInitialData",
+    "http://localhost:3000/api/v2/models/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ async function write_initial_data(user_inputs: string, file_name: string) {
 
 async function implement_edits(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://brs-agent.datamation.lk/api/v2/models/implement_edits",
+    "http://localhost:3000/api/v2/models/implement_edits",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,7 +106,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://brs-agent.datamation.lk/api/legacy/data/readFile?file_name=${file_name}`,
+    `http://localhost:3000/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -313,7 +313,7 @@ export async function POST(request: Request) {
               } else if (name === "search") {
                 try {
                   const response = await fetch(
-                    `https://brs-agent.datamation.lk/api/v1/search?query=${functionArgs.query}`,
+                    `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },

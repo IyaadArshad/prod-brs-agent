@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   // get an overview
   try {
     const overviewResponse = await fetch(
-      "https://brs-agent.datamation.lk/api/v2/models/getOverview",
+      "http://localhost:3000/api/v2/models/getOverview",
       {
         method: "POST",
         headers: {
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
   try {
     const implemented_overview = await fetch(
-      "https://brs-agent.datamation.lk/api/v2/models/implementOverview",
+      "http://localhost:3000/api/v2/models/implementOverview",
       {
         method: "POST",
         headers: {

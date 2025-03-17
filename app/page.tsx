@@ -208,7 +208,7 @@ export default function ChatInterface() {
         setIsConversationStarted(true);
         async function createFile(file_name: string) {
           const response = await fetch(
-            "https://brs-agent.datamation.lk/api/legacy/data/createFile",
+            "http://localhost:3000/api/legacy/data/createFile",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },

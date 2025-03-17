@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   console.log("PARAM FILENAME", file_name);
 
   const file_contents_fetch = await fetch(
-    `https://brs-agent.datamation.lk/api/generative/functions/read_file?file_name=${file_name}`
+    `http://localhost:300/api/generative/functions/read_file?file_name=${file_name}`
   );
   const file_contents = await file_contents_fetch.json();
 
@@ -127,7 +127,7 @@ ${overview}
     // put the new version number in a constant, just the integer
 
     const publishNewVersion = await fetch(
-      "https://brs-agent.datamation.lk/api/legacy/data/publishNewVersion",
+      "http://localhost:3000/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
