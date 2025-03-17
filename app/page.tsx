@@ -164,18 +164,18 @@ export default function ChatInterface() {
 
     const userInput = message.trim();
     setMessage("");
-    
+
     // Handle commands without adding them to chat
     if (userInput.startsWith("/")) {
       const commandParts = userInput.split(" ");
       const command = commandParts[0].toLowerCase();
-      
+
       if (command === "/help" || userInput === "/") {
         // Process help command silently
         // Only show output for errors (none for help)
         const helpMessage =
           "I can help you with the following commands:\n\n **/help** - Show available commands\n\n/**settings** - Configure options\n\n/**assisted** [filename] - Switch to Assisted View\n\n**/create** [filename] - Create new document\n\n**/open** [filename] - Open Editor Files\n\n Please make sure you type out **full commands.** The command menu only serves for reference purposes";
-        
+
         await new Promise((resolve) => setTimeout(resolve, 1700));
         let currentMessage = "";
         const words = helpMessage.split(" ");
@@ -248,7 +248,11 @@ export default function ChatInterface() {
         } else {
           // Create file but only show response on error
           const response = await createFile(commandParts[1]);
-          if (response.includes("Error") || response.includes("failed") || response.includes("Invalid")) {
+          if (
+            response.includes("Error") ||
+            response.includes("failed") ||
+            response.includes("Invalid")
+          ) {
             setMessages((prev) => [
               ...prev,
               {
@@ -264,7 +268,10 @@ export default function ChatInterface() {
       } else if (command === "/open") {
         setIsConversationStarted(true);
         const parts = userInput.split(" ");
-        if (parts.length === 2 && (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))) {
+        if (
+          parts.length === 2 &&
+          (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))
+        ) {
           setSplitView(true);
           setOpenedDocument(parts[1]); // Set the opened document name
         } else {
@@ -273,7 +280,8 @@ export default function ChatInterface() {
             ...prev,
             {
               id: Date.now().toString(),
-              content: "Invalid /open command format. Provide one file name ending with .md or .pdf",
+              content:
+                "Invalid /open command format. Provide one file name ending with .md or .pdf",
               role: "assistant",
               timestamp: Date.now(),
             },
@@ -288,7 +296,7 @@ export default function ChatInterface() {
         // Only show errors if needed
         return;
       }
-      
+
       // If we get here, it's an unrecognized command - show error
       setMessages((prev) => [
         ...prev,
