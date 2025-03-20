@@ -102,29 +102,29 @@ export default function ChatInterface() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
-      e.preventDefault(); // Prevent default selection behavior
+      e.preventDefault();
       let newWidth;
       if (leftPaneToRight) {
-        // When left pane is on right side
         newWidth = ((window.innerWidth - e.clientX) / window.innerWidth) * 100;
       } else {
-        // When left pane is on left side
         newWidth = (e.clientX / window.innerWidth) * 100;
       }
-      // Constrain width between 25% and 75%
       newWidth = Math.max(25, Math.min(75, newWidth));
       setEditorWidth(newWidth);
+      document.body.style.cursor = 'col-resize'; // Change cursor during drag
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    document.body.style.userSelect = 'auto'; // Re-enable text selection
+    document.body.style.userSelect = 'auto';
+    document.body.style.cursor = 'default'; // Reset cursor when done
   };
 
   const handleMouseDown = () => {
     setIsDragging(true);
-    document.body.style.userSelect = 'none'; // Disable text selection while dragging
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize'; // Set resize cursor on mousedown
   };
 
   useEffect(() => {
