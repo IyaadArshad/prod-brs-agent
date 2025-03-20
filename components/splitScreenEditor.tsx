@@ -41,18 +41,22 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
 
   return (
     <>
-      {/* Updated style block to target milkdown-code-block */}
       <style>{`
-        .milkdown-editor, .milkdown-editor * {
-          color: #fff !important;
-          font-family: 'Roboto', sans-serif !important;
-        }
-        .milkdown-editor milkdown-code-block,
-        .milkdown-editor milkdown-code-block * {
-          color: #333 !important;
-          background-color: #f5f5f5 !important;
-          font-family: 'Roboto Mono', monospace !important;
-        }
+      .milkdown-editor, .milkdown-editor * {
+        color: #fff !important;
+        font-family: 'Roboto', sans-serif !important;
+      }
+      .milkdown-editor p {
+        margin-bottom: 1.1em !important;
+        font-size: 1.2rem !important;
+        line-height: 1.4 !important;
+      }
+      .milkdown-editor milkdown-code-block,
+      .milkdown-editor milkdown-code-block * {
+        color: #333 !important;
+        background-color: #f5f5f5 !important;
+        font-family: 'Roboto Mono', monospace !important;
+      }
       `}</style>
       <div ref={editorRef} className="milkdown-editor h-full w-full" />
     </>
