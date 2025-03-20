@@ -29,12 +29,12 @@ export function DocumentHeader({
     <header className="flex h-14 flex-none border-none items-center justify-between gap-1 px-3 border-b border-border">
       <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
         <DropdownMenu>
-          <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center gap-1 rounded-lg pr-2 hover:bg-muted text-left">
-            <h2 className="max-w-[270px] text-[#e3e3e3] overflow-hidden truncate text-lg text-muted-foreground px-3">
+          <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
+            <h2 className="max-w-[270px] overflow-hidden truncate text-lg text-gray-100 pr-2 pl-3">
               {documentName}
             </h2>
-            <div className="flex items-center">
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center pr-1">
+              <ChevronDown className="h-5 w-5" style={{ color: '#b4b4b4' }} />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
