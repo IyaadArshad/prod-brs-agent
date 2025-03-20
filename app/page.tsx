@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { JSONContent } from "@sergeysova/craft";
 import Link from "next/link";
 import Cookies from "js-cookie";
 import gravatarUrl from "gravatar-url";
@@ -25,11 +24,10 @@ declare global {
 }
 
 export default function ChatInterface() {
-  const [content, setContent] = useState<JSONContent>({});
   const [message, setMessage] = useState("");
   const [commandFilter, setCommandFilter] = useState("");
-  const [splitView, setSplitView] = useState(false); // New state
-  const [editorWidth, setEditorWidth] = useState(50);
+  const [splitView, setSplitView] = useState(false);
+  const [editorWidth, setEditorWidth] = useState(50); // customize default width
   const [isDragging, setIsDragging] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null
@@ -42,7 +40,7 @@ export default function ChatInterface() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [leftPaneToRight, setLeftPaneToRight] = useState(false);
+  const [leftPaneToRight, setLeftPaneToRight] = useState(true); // Changed from false to true
   const [openedDocument, setOpenedDocument] = useState<string>("");
   const [fileContent, setFileContent] = useState("");
   const [isFileLoading, setIsFileLoading] = useState(false);
