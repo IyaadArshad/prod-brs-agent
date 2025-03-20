@@ -152,7 +152,7 @@ export function DocumentHeader({
   moveLabel,
 }: DocumentHeaderProps) {
   return (
-    <header className="flex h-14 flex-none border-none items-center justify-between gap-1 px-3 border-b border-border">
+    <header className="flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
       <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
         <DropdownMenu>
           <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
