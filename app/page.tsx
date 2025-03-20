@@ -40,15 +40,12 @@ export default function ChatInterface() {
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false); // Add this state
-  const abortControllerRef = useRef<AbortController | null>(null); // Add this ref
-  const [leftPaneToRight, setLeftPaneToRight] = useState(false); // New state
+  const [isStreaming, setIsStreaming] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [leftPaneToRight, setLeftPaneToRight] = useState(false);
   const [openedDocument, setOpenedDocument] = useState<string>("");
-  // NEW: state for loaded file and loading flag
   const [fileContent, setFileContent] = useState("");
   const [isFileLoading, setIsFileLoading] = useState(false);
-  // Removed renderedContent state
-  // const [renderedContent, setRenderedContent] = useState<string>("");
   const [selectedButtons, setSelectedButtons] = useState({
     search: false,
     reason: false,
@@ -61,7 +58,6 @@ export default function ChatInterface() {
       const defaultAvatarUrl =
         "https://brs-agent.acroford.com/images/default_pfp.png";
 
-      // Generate gravatar URL with secure HTTPS and proper size
       const avatarUrl = gravatarUrl(newUserEmail.trim(), {
         default: defaultAvatarUrl, // Use our default image URL as fallback
         size: 200,
@@ -79,7 +75,6 @@ export default function ChatInterface() {
         }
       } catch (error) {
         console.error("Error fetching gravatar:", error);
-        // Fallback to default image on error
         Cookies.set("gravatar", defaultAvatarUrl, { expires: 365 });
       }
 
@@ -161,7 +156,7 @@ export default function ChatInterface() {
         // Process help command silently
         // Only show output for errors (none for help)
         const helpMessage =
-          "I can help you with the following commands:\n\n **/help** - Show available commands\n\n/**settings** - Configure options\n\n/**assisted** [filename] - Switch to Assisted View\n\n**/create** [filename] - Create new document\n\n**/open** [filename] - Open Editor Files\n\n Please make sure you type out **full commands.** The command menu only serves for reference purposes";
+          "I can help you with the following commands:\n\n **/help** - Show available commands\n\n**/create** [filename] - Create new document\n\n**/open** [filename] - Open Editor Files\n\n Please make sure you type out **full commands.** The command menu only serves for reference purposes";
 
         await new Promise((resolve) => setTimeout(resolve, 1700));
         let currentMessage = "";
@@ -210,7 +205,6 @@ export default function ChatInterface() {
           return responseData.message;
         }
 
-        // Don't display invalid format messages only if there's an error
         if (commandParts.length !== 2 || !commandParts[1].endsWith(".md")) {
           await new Promise((resolve) => setTimeout(resolve, 950));
           let currentMessage = "";
@@ -230,7 +224,7 @@ export default function ChatInterface() {
                 timestamp: Date.now(),
               },
             ]);
-            break; // Only need to set it once
+            break;
           }
         } else {
           // Create file but only show response on error
@@ -260,9 +254,8 @@ export default function ChatInterface() {
           (parts[1].endsWith(".md") || parts[1].endsWith(".pdf"))
         ) {
           setSplitView(true);
-          setOpenedDocument(parts[1]); // Set the opened document name
+          setOpenedDocument(parts[1]);
         } else {
-          // Only show a message for invalid format
           setMessages((prev) => [
             ...prev,
             {
@@ -277,10 +270,6 @@ export default function ChatInterface() {
         return;
       } else if (command === "/exit") {
         setSplitView(false);
-        return;
-      } else if (command === "/assisted") {
-        // Handle assisted command - assuming this is for future implementation
-        // Only show errors if needed
         return;
       }
 
