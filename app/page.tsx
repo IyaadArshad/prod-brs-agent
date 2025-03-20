@@ -8,13 +8,8 @@ import { JSONContent } from "@sergeysova/craft";
 import {
   SendHorizontal,
   Square,
-  LucideMoreVertical,
-  ArrowLeft,
-  ArrowRight,
   ChevronDown,
-  Copy,
-  RotateCcw,
-  X,
+  RotateCcw
 } from "lucide-react";
 import Link from "next/link";
 import {
