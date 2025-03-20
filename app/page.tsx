@@ -5,14 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JSONContent } from "@sergeysova/craft";
-import { SendHorizontal, Square } from "lucide-react";
 import Link from "next/link";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import Cookies from "js-cookie";
 import gravatarUrl from "gravatar-url";
 import ReactDOMServer from "react-dom/server";
@@ -22,8 +15,6 @@ import { logVerbose } from "@/components/home/camelCased/logVerbose";
 import { CommandMenu } from "@/components/home/CommandMenu";
 import { MessageComponent } from "@/components/home/MessageComponent";
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
-import { Upload, Search } from "lucide-react";
-import { ReasonIcon as BrainCircuit } from "./icons/reason";
 import { DocumentHeader } from "@/components/DocumentHeader";
 import { ChatInputBox } from "@/components/ChatInputBox";
 
@@ -727,7 +718,7 @@ export default function ChatInterface() {
                   What can I help with?
                 </motion.h1>
 
-                <ChatInputBox 
+                <ChatInputBox
                   message={message}
                   setMessage={setMessage}
                   handleSendMessage={handleSendMessage}
@@ -774,7 +765,7 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <ChatInputBox 
+                      <ChatInputBox
                         message={message}
                         setMessage={setMessage}
                         handleSendMessage={handleSendMessage}
@@ -894,7 +885,7 @@ export default function ChatInterface() {
                   What can I help with?
                 </motion.h1>
 
-                <ChatInputBox 
+                <ChatInputBox
                   message={message}
                   setMessage={setMessage}
                   handleSendMessage={handleSendMessage}
@@ -941,7 +932,7 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <ChatInputBox 
+                      <ChatInputBox
                         message={message}
                         setMessage={setMessage}
                         handleSendMessage={handleSendMessage}
@@ -987,7 +978,7 @@ export default function ChatInterface() {
             What can I help with?
           </motion.h1>
 
-          <ChatInputBox 
+          <ChatInputBox
             message={message}
             setMessage={setMessage}
             handleSendMessage={handleSendMessage}
@@ -1034,7 +1025,7 @@ export default function ChatInterface() {
           <div className="">
             <div className="max-w-5xl mx-auto p-4">
               <div className="sticky bottom-0 p-4">
-                <ChatInputBox 
+                <ChatInputBox
                   message={message}
                   setMessage={setMessage}
                   handleSendMessage={handleSendMessage}
