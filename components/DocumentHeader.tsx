@@ -1,4 +1,4 @@
-import { ChevronDown, RotateCcw } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -118,6 +118,26 @@ function DropdownIcon() {
   );
 }
 
+function VersionHistoryIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="icon-xl-heavy"
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M4 5.99929V4.5C4 3.94772 3.55228 3.5 3 3.5C2.44772 3.5 2 3.94772 2 4.5V9C2 9.55228 2.44772 10 3 10H7C7.55228 10 8 9.55228 8 9C8 8.44772 7.55228 8 7 8H5.07004C6.4544 5.60707 9.04034 4 12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C8.194 20 5.0066 17.3412 4.19823 13.7787C4.07601 13.2401 3.54032 12.9026 3.00173 13.0248C2.46314 13.147 2.12559 13.6827 2.24781 14.2213C3.25835 18.6747 7.23965 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C8.72759 2 5.82361 3.57195 4 5.99929ZM12 6C12.5523 6 13 6.44772 13 7V12C13 12.2652 12.8946 12.5196 12.7071 12.7071L10.2071 15.2071C9.81658 15.5976 9.18342 15.5976 8.79289 15.2071C8.40237 14.8166 8.40237 14.1834 8.79289 13.7929L11 11.5858V7C11 6.44772 11.4477 6 12 6Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+  );
+}
+
 const IconButton = ({
   children,
   ariaLabel,
@@ -152,7 +172,7 @@ export function DocumentHeader({
   moveLabel,
 }: DocumentHeaderProps) {
   return (
-    <header className="flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
+    <header className="sticky top-0 flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
       <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
         <DropdownMenu>
           <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
@@ -160,7 +180,7 @@ export function DocumentHeader({
               {documentName}
             </h1>
             <div className="flex items-center pr-1">
-              <ChevronDown className="h-7 w-7" style={{ color: '#e3e3e3' }} />
+              <DropdownIcon />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
@@ -176,8 +196,8 @@ export function DocumentHeader({
 
       <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
         <div className="flex items-center gap-1.5">
-          <IconButton ariaLabel="Refresh">
-            <RotateCcw className="h-7 w-7" />
+          <IconButton ariaLabel="Version History">
+            <VersionHistoryIcon />
           </IconButton>
 
           <IconButton ariaLabel="Previous Version" disabled>
