@@ -791,23 +791,25 @@ export default function ChatInterface() {
               </>
             )}
           </div>
-          <div
-            className="w-[3px] bg-black cursor-col-resize"
+            <div
+            className="w-[4px] transition-colors duration-300 hover:bg-[#555555] bg-black cursor-col-resize"
             onMouseDown={handleMouseDown}
-          />
-          {/* Left pane on right side with left border */}
+            />
+            {/* Left pane on right side with left border */}
           <div
             className="border-l screen border-black overflow-y-auto"
             style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
           >
             <div>
               {/* Document header bar - now using the component */}
+              <div className="bg-[#2f2f2f] sticky top-0 z-10">
               <DocumentHeader
                 documentName={openedDocument}
                 onClose={handleDocumentClose}
                 onMoveSide={() => setLeftPaneToRight(false)}
                 moveLabel="Move to left side"
               />
+              </div>
 
               {/* Editor content */}
               {isFileLoading ? (
@@ -838,13 +840,14 @@ export default function ChatInterface() {
           >
             <div>
               {/* Document header bar - now using the component */}
+              <div className="bg-[#2f2f2f] sticky top-0 z-10">
               <DocumentHeader
                 documentName={openedDocument}
                 onClose={handleDocumentClose}
                 onMoveSide={() => setLeftPaneToRight(true)}
                 moveLabel="Move to right side"
               />
-
+              </div>
               {/* Editor content */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
@@ -864,7 +867,7 @@ export default function ChatInterface() {
             </div>
           </div>
           <div
-            className="w-[3px] bg-black cursor-col-resize"
+            className="w-[4px] hover:bg-[#555555] duration-300 transition-colors bg-black cursor-col-resize"
             onMouseDown={handleMouseDown}
           />
           {/* Right pane */}
