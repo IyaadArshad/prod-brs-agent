@@ -102,6 +102,7 @@ export default function ChatInterface() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
+      e.preventDefault(); // Prevent default selection behavior
       let newWidth;
       if (leftPaneToRight) {
         // When left pane is on right side
@@ -118,10 +119,12 @@ export default function ChatInterface() {
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    document.body.style.userSelect = 'auto'; // Re-enable text selection
   };
 
   const handleMouseDown = () => {
     setIsDragging(true);
+    document.body.style.userSelect = 'none'; // Disable text selection while dragging
   };
 
   useEffect(() => {
