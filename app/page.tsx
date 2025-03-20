@@ -5,7 +5,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JSONContent } from "@sergeysova/craft";
-import { SendHorizontal, Square, LucideMoreVertical } from "lucide-react";
+import {
+  SendHorizontal,
+  Square,
+  LucideMoreVertical,
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  Copy,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Tooltip,
@@ -30,6 +40,12 @@ import { MessageComponent } from "@/components/home/MessageComponent";
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
 import { Upload, Search } from "lucide-react";
 import { ReasonIcon as BrainCircuit } from "./icons/reason";
+import {
+  CopyIcon,
+  NextVersionIcon,
+  PreviousVersionIcon,
+  ShareIcon,
+} from "./icons/documentHeader";
 
 declare global {
   interface Window {
@@ -969,42 +985,70 @@ export default function ChatInterface() {
           >
             <div>
               {/* Document header bar */}
-              <div className="bg-[#2a2a2a] border-b border-[#404040] shadow-sm">
-                <div className="p-4 flex items-center justify-between">
-                  <h1 className="text-white text-lg font-light">
-                    {openedDocument}
-                  </h1>
+              <header className="flex h-14 flex-none border-none items-center justify-between gap-1 px-3 border-b border-border">
+                <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="text-white focus:outline-none">
-                        <LucideMoreVertical className="w-4 h-4" />
-                      </button>
+                    <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center gap-1 rounded-lg pr-2 hover:bg-muted text-left">
+                      <h2 className="max-w-[270px] text-[#e3e3e3] overflow-hidden truncate text-lg text-muted-foreground px-3">
+                        {openedDocument}
+                      </h2>
+                      <div className="flex items-center">
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
+                    <DropdownMenuContent>
                       <DropdownMenuItem
                         onSelect={() => {
                           setSplitView(false);
                           setOpenedDocument("");
                         }}
-                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                       >
                         Close {openedDocument}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={() => setLeftPaneToRight(true)}
-                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                       >
                         Move to right side
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </div>
+
+                <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
+                  <div className="flex items-center gap-1.5">
+                    <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0 transition-colors">
+                      <RotateCcw className="h-6 w-6" />
+                    </button>
+
+                    <button
+                      disabled
+                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
+                    >
+                      <PreviousVersionIcon />
+                    </button>
+
+                    <button
+                      disabled
+                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
+                    >
+                      <NextVersionIcon />
+                    </button>
+                  </div>
+
+                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
+                    <CopyIcon />
+                  </button>
+
+                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
+                    <ShareIcon />
+                  </button>
+                </div>
+              </header>
               {/* NEW: Using SplitScreenEditor for viewing the document */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
-                  <h2 className="text-2xl font-bold mt-4">
+                  <h2 className="text-2xl text-[#fff] font-bold mt-4">
                     Loading {openedDocument}
                   </h2>
                   <p className="text-gray-500 mt-2">
@@ -1029,42 +1073,81 @@ export default function ChatInterface() {
           >
             <div>
               {/* Document header bar */}
-              <div className="bg-[#2a2a2a] border-b border-[#404040] shadow-sm">
-                <div className="p-3 flex items-center justify-between">
-                  <span className="text-white font-light text-sm">
-                    {openedDocument}
-                  </span>
+              <header className="flex h-14 border-none flex-none items-center justify-between gap-1 px-3 border-b border-border">
+                <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="text-white focus:outline-none">
-                        <LucideMoreVertical className="w-4 h-4" />
-                      </button>
+                    <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center gap-1 rounded-lg pr-2 hover:bg-muted text-left">
+                      <h2 className="max-w-[270px] text-[#e3e3e3] overflow-hidden truncate text-lg text-muted-foreground px-3">
+                        {openedDocument}
+                      </h2>
+                      <div className="flex items-center">
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[rgba(255,255,255,0.7)] backdrop-blur-md shadow-md p-2 min-w-[150px]">
+                    <DropdownMenuContent>
                       <DropdownMenuItem
                         onSelect={() => {
                           setSplitView(false);
                           setOpenedDocument("");
                         }}
-                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                       >
                         Close {openedDocument}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onSelect={() => setLeftPaneToRight(true)}
-                        className="px-2 py-1 hover:bg-gray-200 cursor-pointer"
                       >
                         Move to right side
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </div>
+
+                <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
+                  <div className="flex items-center gap-1.5">
+                    <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0 transition-colors">
+                      <RotateCcw className="h-6 w-6" />
+                    </button>
+
+                    <button
+                      disabled
+                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
+                    >
+                      <PreviousVersionIcon />
+                    </button>
+
+                    <button
+                      disabled
+                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
+                    >
+                      <NextVersionIcon />
+                    </button>
+                  </div>
+
+                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
+                    <CopyIcon />
+                  </button>
+
+                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
+                    <ShareIcon />
+                  </button>
+
+                  <button
+                    aria-label="Open Profile Menu"
+                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"
+                  >
+                    <div className="relative flex items-center justify-center overflow-hidden rounded-full bg-primary h-8 w-8">
+                      <span className="text-primary-foreground text-sm font-medium">
+                        {openedDocument.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </header>
               {/* NEW: Replace left pane content with loading spinner or markdown */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
-                  <h2 className="text-2xl font-bold mt-4">
+                  <h2 className="text-2xl text-[#fff] font-bold mt-4">
                     Loading {openedDocument}
                   </h2>
                   <p className="text-gray-500 mt-2">
