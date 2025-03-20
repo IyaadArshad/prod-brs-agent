@@ -102,9 +102,16 @@ export default function ChatInterface() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
-      let newWidth = (e.clientX / window.innerWidth) * 100;
-      if (newWidth < 25) newWidth = 25;
-      if (newWidth > 75) newWidth = 75;
+      let newWidth;
+      if (leftPaneToRight) {
+        // When left pane is on right side
+        newWidth = ((window.innerWidth - e.clientX) / window.innerWidth) * 100;
+      } else {
+        // When left pane is on left side
+        newWidth = (e.clientX / window.innerWidth) * 100;
+      }
+      // Constrain width between 25% and 75%
+      newWidth = Math.max(25, Math.min(75, newWidth));
       setEditorWidth(newWidth);
     }
   };
