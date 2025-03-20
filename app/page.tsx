@@ -25,6 +25,7 @@ import { SplitScreenEditor } from "@/components/splitScreenEditor";
 import { Upload, Search } from "lucide-react";
 import { ReasonIcon as BrainCircuit } from "./icons/reason";
 import { DocumentHeader } from "@/components/DocumentHeader";
+import { ChatInputBox } from "@/components/ChatInputBox";
 
 declare global {
   interface Window {
@@ -726,45 +727,15 @@ export default function ChatInterface() {
                   What can I help with?
                 </motion.h1>
 
-                <div className="w-full max-w-2xl relative">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    placeholder="Message ChatGPT"
-                  />
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          disabled={!message.trim()}
-                          onClick={
-                            isStreaming ? handleStopRequest : handleSendMessage
-                          }
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isStreaming ? (
-                            <Square className="h-5 w-5" />
-                          ) : (
-                            <SendHorizontal className="h-5 w-5" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      {!message.trim() && (
-                        <TooltipContent>
-                          <p>Please enter a message</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <ChatInputBox 
+                  message={message}
+                  setMessage={setMessage}
+                  handleSendMessage={handleSendMessage}
+                  handleStopRequest={handleStopRequest}
+                  isStreaming={isStreaming}
+                  centerAlignment={true}
+                />
+
                 <footer className="p-4 text-center text-sm text-gray-400">
                   <p>
                     By messaging GPT, you do not agree to our{" "}
@@ -803,143 +774,17 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
-                        {/* Top part - Input area */}
-                        <div className="px-4 pt-4 mb-2">
-                          <Input
-                            value={message}
-                            onChange={(e) => {
-                              setMessage(e.target.value);
-                              if (e.target.value.startsWith("/")) {
-                                setCommandFilter(e.target.value.slice(1));
-                              } else {
-                                setCommandFilter("");
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "Enter" &&
-                                !e.shiftKey &&
-                                message.trim()
-                              ) {
-                                e.preventDefault();
-                                handleSendMessage();
-                              }
-                            }}
-                            className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
-                            placeholder="Message ChatGPT"
-                          />
-                        </div>
-
-                        {/* Bottom part - Actions */}
-                        <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
-                          <div className="flex gap-x-2">
-                            {/* Upload button */}
-                            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                            </button>
-
-                            {/* Search button */}
-                            <button
-                              onClick={() =>
-                                setSelectedButtons((prev) => ({
-                                  ...prev,
-                                  search: !prev.search,
-                                  reason: false, // Disable reason when toggling search
-                                }))
-                              }
-                              className={`flex h-9 items-center justify-center rounded-full ${
-                                selectedButtons.search
-                                  ? "bg-[#2a4a6d] border-0"
-                                  : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                              } px-3`}
-                            >
-                              <Search
-                                className={`h-[18px] w-[18px] ${
-                                  selectedButtons.search
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              />
-                              <span
-                                className={`ml-2 text-sm ${
-                                  selectedButtons.search
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              >
-                                Search
-                              </span>
-                            </button>
-
-                            {/* Reason button */}
-                            <button
-                              onClick={() =>
-                                setSelectedButtons((prev) => ({
-                                  ...prev,
-                                  reason: !prev.reason,
-                                  search: false, // Disable search when toggling reason
-                                }))
-                              }
-                              className={`flex h-9 items-center justify-center rounded-full ${
-                                selectedButtons.reason
-                                  ? "bg-[#2a4a6d] border-0"
-                                  : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                              } px-3`}
-                            >
-                              <BrainCircuit
-                                className={`h-[18px] w-[18px] ${
-                                  selectedButtons.reason
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              />
-                              <span
-                                className={`ml-2 text-sm ${
-                                  selectedButtons.reason
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              >
-                                Reason
-                              </span>
-                            </button>
-                          </div>
-
-                          {/* Send button */}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  disabled={!message.trim()}
-                                  onClick={
-                                    isStreaming
-                                      ? handleStopRequest
-                                      : handleSendMessage
-                                  }
-                                  className={`h-9 w-9 rounded-full ${
-                                    message.trim()
-                                      ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
-                                      : "bg-[#676767] text-[#2f2f2f]"
-                                  }`}
-                                >
-                                  {isStreaming ? (
-                                    <Square className="h-5 w-5" />
-                                  ) : (
-                                    <SendHorizontal className="h-5 w-5" />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              {!message.trim() && (
-                                <TooltipContent>
-                                  <p>Please enter a message</p>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
+                      <ChatInputBox 
+                        message={message}
+                        setMessage={setMessage}
+                        handleSendMessage={handleSendMessage}
+                        handleStopRequest={handleStopRequest}
+                        isStreaming={isStreaming}
+                        commandFilter={commandFilter}
+                        setCommandFilter={setCommandFilter}
+                        selectedButtons={selectedButtons}
+                        setSelectedButtons={setSelectedButtons}
+                      />
 
                       {message.startsWith("/") && (
                         <CommandMenu
@@ -1049,45 +894,15 @@ export default function ChatInterface() {
                   What can I help with?
                 </motion.h1>
 
-                <div className="w-full max-w-2xl relative">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    placeholder="Message ChatGPT"
-                  />
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          disabled={!message.trim()}
-                          onClick={
-                            isStreaming ? handleStopRequest : handleSendMessage
-                          }
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isStreaming ? (
-                            <Square className="h-5 w-5" />
-                          ) : (
-                            <SendHorizontal className="h-5 w-5" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      {!message.trim() && (
-                        <TooltipContent>
-                          <p>Please enter a message</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <ChatInputBox 
+                  message={message}
+                  setMessage={setMessage}
+                  handleSendMessage={handleSendMessage}
+                  handleStopRequest={handleStopRequest}
+                  isStreaming={isStreaming}
+                  centerAlignment={true}
+                />
+
                 <footer className="p-4 text-center text-sm text-gray-400">
                   <p>
                     By messaging GPT, you do not agree to our{" "}
@@ -1126,143 +941,17 @@ export default function ChatInterface() {
                 <div className="">
                   <div className="max-w-3xl mx-auto p-4">
                     <div className="sticky bottom-0 p-4">
-                      <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
-                        {/* Top part - Input area */}
-                        <div className="px-4 pt-4 mb-2">
-                          <Input
-                            value={message}
-                            onChange={(e) => {
-                              setMessage(e.target.value);
-                              if (e.target.value.startsWith("/")) {
-                                setCommandFilter(e.target.value.slice(1));
-                              } else {
-                                setCommandFilter("");
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (
-                                e.key === "Enter" &&
-                                !e.shiftKey &&
-                                message.trim()
-                              ) {
-                                e.preventDefault();
-                                handleSendMessage();
-                              }
-                            }}
-                            className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
-                            placeholder="Message ChatGPT"
-                          />
-                        </div>
-
-                        {/* Bottom part - Actions */}
-                        <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
-                          <div className="flex gap-x-2">
-                            {/* Upload button */}
-                            <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                              <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                            </button>
-
-                            {/* Search button */}
-                            <button
-                              onClick={() =>
-                                setSelectedButtons((prev) => ({
-                                  ...prev,
-                                  search: !prev.search,
-                                  reason: false, // Disable reason when toggling search
-                                }))
-                              }
-                              className={`flex h-9 items-center justify-center rounded-full ${
-                                selectedButtons.search
-                                  ? "bg-[#2a4a6d] border-0"
-                                  : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                              } px-3`}
-                            >
-                              <Search
-                                className={`h-[18px] w-[18px] ${
-                                  selectedButtons.search
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              />
-                              <span
-                                className={`ml-2 text-sm ${
-                                  selectedButtons.search
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              >
-                                Search
-                              </span>
-                            </button>
-
-                            {/* Reason button */}
-                            <button
-                              onClick={() =>
-                                setSelectedButtons((prev) => ({
-                                  ...prev,
-                                  reason: !prev.reason,
-                                  search: false, // Disable search when toggling reason
-                                }))
-                              }
-                              className={`flex h-9 items-center justify-center rounded-full ${
-                                selectedButtons.reason
-                                  ? "bg-[#2a4a6d] border-0"
-                                  : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                              } px-3`}
-                            >
-                              <BrainCircuit
-                                className={`h-[18px] w-[18px] ${
-                                  selectedButtons.reason
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              />
-                              <span
-                                className={`ml-2 text-sm ${
-                                  selectedButtons.reason
-                                    ? "text-[#48aaff]"
-                                    : "text-[#b4b4b4]"
-                                }`}
-                              >
-                                Reason
-                              </span>
-                            </button>
-                          </div>
-
-                          {/* Send button */}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  disabled={!message.trim()}
-                                  onClick={
-                                    isStreaming
-                                      ? handleStopRequest
-                                      : handleSendMessage
-                                  }
-                                  className={`h-9 w-9 rounded-full ${
-                                    message.trim()
-                                      ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
-                                      : "bg-[#676767] text-[#2f2f2f]"
-                                  }`}
-                                >
-                                  {isStreaming ? (
-                                    <Square className="h-5 w-5" />
-                                  ) : (
-                                    <SendHorizontal className="h-5 w-5" />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              {!message.trim() && (
-                                <TooltipContent>
-                                  <p>Please enter a message</p>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
+                      <ChatInputBox 
+                        message={message}
+                        setMessage={setMessage}
+                        handleSendMessage={handleSendMessage}
+                        handleStopRequest={handleStopRequest}
+                        isStreaming={isStreaming}
+                        commandFilter={commandFilter}
+                        setCommandFilter={setCommandFilter}
+                        selectedButtons={selectedButtons}
+                        setSelectedButtons={setSelectedButtons}
+                      />
 
                       {message.startsWith("/") && (
                         <CommandMenu
@@ -1298,45 +987,15 @@ export default function ChatInterface() {
             What can I help with?
           </motion.h1>
 
-          <div className="w-full max-w-2xl relative">
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && message.trim()) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              className="w-full bg-[#2f2f2f] border-none text-white px-4 py-6 rounded-lg pr-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-              placeholder="Message ChatGPT"
-            />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    disabled={!message.trim()}
-                    onClick={
-                      isStreaming ? handleStopRequest : handleSendMessage
-                    }
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:text-white/50 bg-transparent hover:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isStreaming ? (
-                      <Square className="h-5 w-5" />
-                    ) : (
-                      <SendHorizontal className="h-5 w-5" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                {!message.trim() && (
-                  <TooltipContent>
-                    <p>Please enter a message</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <ChatInputBox 
+            message={message}
+            setMessage={setMessage}
+            handleSendMessage={handleSendMessage}
+            handleStopRequest={handleStopRequest}
+            isStreaming={isStreaming}
+            centerAlignment={true}
+          />
+
           <footer className="p-4 text-center text-sm text-gray-400">
             <p>
               By messaging GPT, you do not agree to our{" "}
@@ -1375,143 +1034,17 @@ export default function ChatInterface() {
           <div className="">
             <div className="max-w-5xl mx-auto p-4">
               <div className="sticky bottom-0 p-4">
-                <div className="rounded-xl border border-[#454545] bg-[#303030] shadow-none">
-                  {/* Top part - Input area */}
-                  <div className="px-4 pt-4 mb-2">
-                    <Input
-                      value={message}
-                      onChange={(e) => {
-                        setMessage(e.target.value);
-                        if (e.target.value.startsWith("/")) {
-                          setCommandFilter(e.target.value.slice(1));
-                        } else {
-                          setCommandFilter("");
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === "Enter" &&
-                          !e.shiftKey &&
-                          message.trim()
-                        ) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                      className="w-full border-0 bg-transparent p-0 text-[#ececec] focus-visible:ring-0 focus-visible:ring-offset-0"
-                      placeholder="Message ChatGPT"
-                    />
-                  </div>
-
-                  {/* Bottom part - Actions */}
-                  <div className="mb-2 mt-2 flex items-center justify-between px-4 pb-2">
-                    <div className="flex gap-x-2">
-                      {/* Upload button */}
-                      <button className="flex h-9 w-9 items-center justify-center rounded-full border border-[#454545] bg-transparent hover:bg-[#424242] text-[#b4b4b4]">
-                        <Upload className="h-[18px] w-[18px] text-[#b4b4b4]" />
-                      </button>
-
-                      {/* Search button */}
-                      <button
-                        onClick={() =>
-                          setSelectedButtons((prev) => ({
-                            ...prev,
-                            search: !prev.search,
-                            reason: false, // Disable reason when toggling search
-                          }))
-                        }
-                        className={`flex h-9 items-center justify-center rounded-full ${
-                          selectedButtons.search
-                            ? "bg-[#2a4a6d] border-0"
-                            : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                        } px-3`}
-                      >
-                        <Search
-                          className={`h-[18px] w-[18px] ${
-                            selectedButtons.search
-                              ? "text-[#48aaff]"
-                              : "text-[#b4b4b4]"
-                          }`}
-                        />
-                        <span
-                          className={`ml-2 text-sm ${
-                            selectedButtons.search
-                              ? "text-[#48aaff]"
-                              : "text-[#b4b4b4]"
-                          }`}
-                        >
-                          Search
-                        </span>
-                      </button>
-
-                      {/* Reason button */}
-                      <button
-                        onClick={() =>
-                          setSelectedButtons((prev) => ({
-                            ...prev,
-                            reason: !prev.reason,
-                            search: false, // Disable search when toggling reason
-                          }))
-                        }
-                        className={`flex h-9 items-center justify-center rounded-full ${
-                          selectedButtons.reason
-                            ? "bg-[#2a4a6d] border-0"
-                            : "border border-[#454545] bg-transparent hover:bg-[#424242]"
-                        } px-3`}
-                      >
-                        <BrainCircuit
-                          className={`h-[18px] w-[18px] ${
-                            selectedButtons.reason
-                              ? "text-[#48aaff]"
-                              : "text-[#b4b4b4]"
-                          }`}
-                        />
-                        <span
-                          className={`ml-2 text-sm ${
-                            selectedButtons.reason
-                              ? "text-[#48aaff]"
-                              : "text-[#b4b4b4]"
-                          }`}
-                        >
-                          Reason
-                        </span>
-                      </button>
-                    </div>
-
-                    {/* Send button */}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="icon"
-                            disabled={!message.trim()}
-                            onClick={
-                              isStreaming
-                                ? handleStopRequest
-                                : handleSendMessage
-                            }
-                            className={`h-9 w-9 rounded-full ${
-                              message.trim()
-                                ? "bg-[#ffffff] text-[#0e0e0e] hover:opacity-80"
-                                : "bg-[#676767] text-[#2f2f2f]"
-                            }`}
-                          >
-                            {isStreaming ? (
-                              <Square className="h-5 w-5" />
-                            ) : (
-                              <SendHorizontal className="h-5 w-5" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        {!message.trim() && (
-                          <TooltipContent>
-                            <p>Please enter a message</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
+                <ChatInputBox 
+                  message={message}
+                  setMessage={setMessage}
+                  handleSendMessage={handleSendMessage}
+                  handleStopRequest={handleStopRequest}
+                  isStreaming={isStreaming}
+                  commandFilter={commandFilter}
+                  setCommandFilter={setCommandFilter}
+                  selectedButtons={selectedButtons}
+                  setSelectedButtons={setSelectedButtons}
+                />
 
                 {message.startsWith("/") && (
                   <CommandMenu
