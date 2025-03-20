@@ -5,12 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { JSONContent } from "@sergeysova/craft";
-import {
-  SendHorizontal,
-  Square,
-  ChevronDown,
-  RotateCcw
-} from "lucide-react";
+import { SendHorizontal, Square } from "lucide-react";
 import Link from "next/link";
 import {
   Tooltip,
@@ -21,12 +16,6 @@ import {
 import Cookies from "js-cookie";
 import gravatarUrl from "gravatar-url";
 import ReactDOMServer from "react-dom/server";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { Message } from "@/types/types";
 import { StatusIndicator } from "@/components/indicator";
 import { logVerbose } from "@/components/home/camelCased/logVerbose";
@@ -35,12 +24,7 @@ import { MessageComponent } from "@/components/home/MessageComponent";
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
 import { Upload, Search } from "lucide-react";
 import { ReasonIcon as BrainCircuit } from "./icons/reason";
-import {
-  CopyIcon,
-  NextVersionIcon,
-  PreviousVersionIcon,
-  ShareIcon,
-} from "./icons/documentHeader";
+import { DocumentHeader } from "@/components/DocumentHeader";
 
 declare global {
   interface Window {
@@ -664,6 +648,11 @@ export default function ChatInterface() {
   //   }
   // }, [fileContent]);
 
+  const handleDocumentClose = () => {
+    setSplitView(false);
+    setOpenedDocument("");
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-[#ffffff] text-[#000000] flex flex-col justify-center items-center p-4 relative">
@@ -979,67 +968,15 @@ export default function ChatInterface() {
             style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
           >
             <div>
-              {/* Document header bar */}
-              <header className="flex h-14 flex-none border-none items-center justify-between gap-1 px-3 border-b border-border">
-                <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center gap-1 rounded-lg pr-2 hover:bg-muted text-left">
-                      <h2 className="max-w-[270px] text-[#e3e3e3] overflow-hidden truncate text-lg text-muted-foreground px-3">
-                        {openedDocument}
-                      </h2>
-                      <div className="flex items-center">
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setSplitView(false);
-                          setOpenedDocument("");
-                        }}
-                      >
-                        Close {openedDocument}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() => setLeftPaneToRight(true)}
-                      >
-                        Move to right side
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+              {/* Document header bar - now using the component */}
+              <DocumentHeader
+                documentName={openedDocument}
+                onClose={handleDocumentClose}
+                onMoveSide={() => setLeftPaneToRight(false)}
+                moveLabel="Move to left side"
+              />
 
-                <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
-                  <div className="flex items-center gap-1.5">
-                    <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0 transition-colors">
-                      <RotateCcw className="h-6 w-6" />
-                    </button>
-
-                    <button
-                      disabled
-                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
-                    >
-                      <PreviousVersionIcon />
-                    </button>
-
-                    <button
-                      disabled
-                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
-                    >
-                      <NextVersionIcon />
-                    </button>
-                  </div>
-
-                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
-                    <CopyIcon />
-                  </button>
-
-                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
-                    <ShareIcon />
-                  </button>
-                </div>
-              </header>
-              {/* NEW: Using SplitScreenEditor for viewing the document */}
+              {/* Editor content */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
@@ -1067,78 +1004,15 @@ export default function ChatInterface() {
             style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
           >
             <div>
-              {/* Document header bar */}
-              <header className="flex h-14 border-none flex-none items-center justify-between gap-1 px-3 border-b border-border">
-                <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center gap-1 rounded-lg pr-2 hover:bg-muted text-left">
-                      <h2 className="max-w-[270px] text-[#e3e3e3] overflow-hidden truncate text-lg text-muted-foreground px-3">
-                        {openedDocument}
-                      </h2>
-                      <div className="flex items-center">
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setSplitView(false);
-                          setOpenedDocument("");
-                        }}
-                      >
-                        Close {openedDocument}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={() => setLeftPaneToRight(true)}
-                      >
-                        Move to right side
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+              {/* Document header bar - now using the component */}
+              <DocumentHeader
+                documentName={openedDocument}
+                onClose={handleDocumentClose}
+                onMoveSide={() => setLeftPaneToRight(true)}
+                moveLabel="Move to right side"
+              />
 
-                <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
-                  <div className="flex items-center gap-1.5">
-                    <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0 transition-colors">
-                      <RotateCcw className="h-6 w-6" />
-                    </button>
-
-                    <button
-                      disabled
-                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
-                    >
-                      <PreviousVersionIcon />
-                    </button>
-
-                    <button
-                      disabled
-                      className="h-10 rounded-lg px-2 text-muted-foreground/40 focus-visible:outline-0"
-                    >
-                      <NextVersionIcon />
-                    </button>
-                  </div>
-
-                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
-                    <CopyIcon />
-                  </button>
-
-                  <button className="h-10 rounded-lg px-2 text-muted-foreground hover:bg-muted focus-visible:outline-0">
-                    <ShareIcon />
-                  </button>
-
-                  <button
-                    aria-label="Open Profile Menu"
-                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted"
-                  >
-                    <div className="relative flex items-center justify-center overflow-hidden rounded-full bg-primary h-8 w-8">
-                      <span className="text-primary-foreground text-sm font-medium">
-                        {openedDocument.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  </button>
-                </div>
-              </header>
-              {/* NEW: Replace left pane content with loading spinner or markdown */}
+              {/* Editor content */}
               {isFileLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-screen">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
