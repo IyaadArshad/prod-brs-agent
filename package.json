@@ -25,7 +25,7 @@
     "gravatar-url": "^4.0.1",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.474.0",
-    "next": "^15.2.1",
+    "next": "^15.2.3",
     "openai": "^4.87.3",
     "pocketbase": "^0.25.1",
     "react": "^18.3.1",
