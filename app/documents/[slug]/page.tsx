@@ -214,7 +214,7 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
       ) : (
         <div
           ref={editorRef}
-          className="milkdown-editor bg-[#2f2f2f] h-full w-full"
+          className="milkdown-editor overflow-y-auto bg-[#2f2f2f] h-full w-full"
         />
       )}
     </>
