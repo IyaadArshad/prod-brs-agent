@@ -53,6 +53,14 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
           background-color: #2f2f2f !important;
         }
 
+        milkdown-toolbar [data-active="true"],
+        milkdown-toolbar .active,
+        milkdown-toolbar .toolbar-item.active,
+        milkdown-toolbar button[aria-pressed="true"] {
+          background-color: #e0e0e0 !important;
+          color: #fff !important;
+        }
+
         milkdown-toolbar * {
           -webkit-user-select: none !important;
           -moz-user-select: none !important;
@@ -71,8 +79,30 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
           font-size: 1.2rem !important;
           line-height: 1.4 !important;
         }
+        .milkdown-editor code {
+          color: #d4d4d4 !important;
+          background-color: #1e1e1e !important;
+          border-radius: 12px;
+          font-family: 'Source Code Pro' !important;
+        }
         .milkdown-editor .operation-item {
           cursor: pointer !important;
+        }
+
+        milkdown-link-edit .link-edit {
+          background-color: #2f2f2f !important;
+          color: #fff !important;
+          margin: 12px !important;
+        }
+
+        milkdown-link-preview .link-preview {
+          background-color: #2f2f2f !important;
+          cursor: pointer !important;
+          color: #fff !important;
+        }
+
+        milkdown-link-preview {
+          padding: 12px !important;
         }
 
         .milkdown-editor table,
