@@ -4,9 +4,76 @@ import React from "react";
 import { Crepe } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
+import dynamic from "next/dynamic";
+
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 interface SplitScreenEditorProps {
   fileName: string;
+}
+
+function LoadingAnimation() {
+  const [animationData, setAnimationData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLottieAnimation = async () => {
+      try {
+        // Fetch the asset record from PocketBase
+        const response = await fetch(
+          "https://pocketbase.acroford.com/api/collections/assets/records/drpninrvrobqaau"
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch animation data");
+        }
+
+        const record = await response.json();
+
+        // Now fetch the actual Lottie JSON file
+        const fileUrl = `https://pocketbase.acroford.com/api/files/${record.collectionId}/${record.id}/${record.data}`;
+        const fileResponse = await fetch(fileUrl);
+
+        if (!fileResponse.ok) {
+          throw new Error("Failed to fetch animation file");
+        }
+
+        const animationJson = await fileResponse.json();
+        setAnimationData(animationJson);
+      } catch (err) {
+        console.error("Error loading Lottie animation:", err);
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLottieAnimation();
+  }, []);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-white p-8">
+        <p>Loading document...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-white">
+      {animationData ? (
+        <>
+          <div className="w-64 h-64">
+            <Lottie animationData={animationData} loop={true} autoplay={true} />
+          </div>
+          <div className="mt-6 text-lg font-medium">Loading document...</div>
+        </>
+      ) : (
+        <p>Loading document...</p>
+      )}
+    </div>
+  );
 }
 
 export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
@@ -231,9 +298,7 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
         }
         `}</style>
       {isLoading ? (
-        <div className="flex items-center justify-center h-full text-white">
-          Loading document...
-        </div>
+        <LoadingAnimation />
       ) : (
         <div
           ref={editorRef}
