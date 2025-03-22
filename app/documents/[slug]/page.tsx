@@ -20,19 +20,7 @@ function LoadingAnimation() {
   useEffect(() => {
     const fetchLottieAnimation = async () => {
       try {
-        // Fetch the asset record from PocketBase
-        const response = await fetch(
-          "https://pocketbase.acroford.com/api/collections/assets/records/drpninrvrobqaau"
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch animation data");
-        }
-
-        const record = await response.json();
-
-        // Now fetch the actual Lottie JSON file
-        const fileUrl = `https://pocketbase.acroford.com/api/files/${record.collectionId}/${record.id}/${record.data}`;
+        const fileUrl = `https://pocketbase.acroford.com/api/files/7k8xxgkrkkd9bjs/drpninrvrobqaau/files_loading_4qC45qHwlG.json`;
         const fileResponse = await fetch(fileUrl);
 
         if (!fileResponse.ok) {
