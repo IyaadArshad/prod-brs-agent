@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import React from "react";
 import { Crepe } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
@@ -249,23 +249,8 @@ export default function DocumentPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const [fileName, setFileName] = useState<string>("");
-
-  useEffect(() => {
-    console.log("[DocumentPage] Resolving params...");
-    const loadParams = async () => {
-      try {
-        const resolvedParams = await params;
-        console.log("[DocumentPage] Resolved params:", resolvedParams);
-        setFileName(resolvedParams.slug);
-        console.log("[DocumentPage] fileName set to:", resolvedParams.slug);
-      } catch (error) {
-        console.error("[DocumentPage] Error resolving params:", error);
-      }
-    };
-
-    loadParams();
-  }, [params]);
+  const unwrappedParams = use(params);
+  const fileName = unwrappedParams.slug;
 
   return (
     <main className="flex min-h-screen flex-col bg-[#1e1e1e]">
