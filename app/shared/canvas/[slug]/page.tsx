@@ -6,6 +6,7 @@ import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 import { useSearchParams as useNextSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { Download } from "lucide-react";
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
@@ -521,6 +522,12 @@ function DocumentViewer({
               }}
             >
               <CopyIcon />
+            </button>
+            <button
+              className="action-button mb-2 p-1.5"
+              title="Download as PDF"
+            >
+              <Download />
             </button>
             <button
               className="action-button mb-2 p-1.5"
