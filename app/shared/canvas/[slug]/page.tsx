@@ -57,7 +57,6 @@ function LoadingAnimation() {
           <div className="w-64 h-64">
             <Lottie animationData={animationData} loop={true} autoplay={true} />
           </div>
-          <div className="mt-6 text-lg font-medium">Loading document...</div>
         </>
       ) : (
         <p>Loading document...</p>
@@ -86,7 +85,8 @@ function DocumentViewer({
       setIsLoading(true);
       console.log("[DocumentViewer] Starting fetchData...");
       try {
-        const url = `/api/legacy/data/readFile?file_name=${fileName}`;
+        // Updated API endpoint
+        const url = `/api/v3/editor/rawFetch?file_name=${fileName}`;
         console.log("[DocumentViewer] Fetching from URL:", url);
         const response = await fetch(url);
         console.log("[DocumentViewer] Fetch response status:", response.status);
@@ -94,11 +94,16 @@ function DocumentViewer({
         console.log("[DocumentViewer] Fetched JSON data:", data);
         let md: string;
         if (data.success) {
-          console.log(
-            "[DocumentViewer] File read successfully, data:",
-            data.data
-          );
-          md = data.data;
+          // Extract the latest version content from the new data structure
+          const fileData = data.data;
+          console.log("[DocumentViewer] File data:", fileData);
+          
+          // Get the latest version number and content
+          const latestVersion = fileData.data.latestVersion;
+          md = fileData.data.versions[latestVersion];
+          
+          console.log("[DocumentViewer] Using latest version:", latestVersion);
+          console.log("[DocumentViewer] Content:", md);
         } else {
           console.error(
             "[DocumentViewer] Error reading file, message:",
@@ -110,6 +115,7 @@ function DocumentViewer({
         setMarkdown(md);
       } catch (err) {
         console.error("[DocumentViewer] Error in fetchData:", err);
+        setMarkdown("Error loading document content.");
       } finally {
         setIsLoading(false);
         console.log("[DocumentViewer] fetchData complete.");
