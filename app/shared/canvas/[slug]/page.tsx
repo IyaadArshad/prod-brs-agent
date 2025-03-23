@@ -306,6 +306,18 @@ export function DocumentViewer({
           font-family: 'Source Code Pro' !important;
         }
 
+        /* Change cursor for read-only mode */
+        .read-only-editor, .read-only-editor * {
+          cursor: default !important;
+        }
+        
+        /* Keep certain elements clickable even in read-only mode */
+        .read-only-editor a, 
+        .read-only-editor [role="button"], 
+        .read-only-editor button {
+          cursor: pointer !important;
+        }
+
         .milkdown-editor ::selection {
           background: #085eec !important;
         }
@@ -316,7 +328,9 @@ export function DocumentViewer({
       ) : (
         <div
           ref={editorRef}
-          className="milkdown-editor overflow-y-auto bg-[#2f2f2f] h-full w-full"
+          className={`milkdown-editor overflow-y-auto bg-[#2f2f2f] h-full w-full ${
+            !isEditing ? "read-only-editor" : ""
+          }`}
         />
       )}
     </>
