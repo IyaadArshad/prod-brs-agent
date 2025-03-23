@@ -822,6 +822,7 @@ export default function ChatInterface() {
                 onClose={handleDocumentClose}
                 onMoveSide={() => setLeftPaneToRight(false)}
                 moveLabel="Move to left side"
+                documentContent={fileContent}
               />
               </div>
 
@@ -860,6 +861,7 @@ export default function ChatInterface() {
                 onClose={handleDocumentClose}
                 onMoveSide={() => setLeftPaneToRight(true)}
                 moveLabel="Move to right side"
+                documentContent={fileContent}
               />
               </div>
               {/* Editor content */}

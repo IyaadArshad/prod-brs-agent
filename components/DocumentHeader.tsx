@@ -5,12 +5,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface DocumentHeaderProps {
   documentName: string;
   onClose: () => void;
   onMoveSide: () => void;
   moveLabel: string;
+  documentContent?: string; // Add prop for document content
 }
 
 function ShareIcon() {
@@ -140,16 +142,19 @@ const IconButton = ({
   children,
   ariaLabel,
   disabled = false,
+  onClick,
 }: {
   children: React.ReactNode;
   ariaLabel: string;
   disabled?: boolean;
+  onClick?: () => void;
 }) => {
   return (
     <div className="relative flex items-center justify-center">
       <button
         aria-label={ariaLabel}
         disabled={disabled}
+        onClick={onClick}
         className={`group relative h-10 rounded-lg px-2 text-[#e3e3e3] hover:bg-[#4e4e4e] focus-visible:outline-0 ${
           disabled ? "opacity-40 cursor-not-allowed" : "transition-colors"
         }`}
@@ -168,7 +173,25 @@ export function DocumentHeader({
   onClose,
   onMoveSide,
   moveLabel,
+  documentContent = "", // Default to empty string
 }: DocumentHeaderProps) {
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+
+  const handleCopy = async () => {
+    if (!documentContent) return;
+    
+    try {
+      await navigator.clipboard.writeText(documentContent);
+      setCopyStatus("copied");
+      // Reset status after 2 seconds
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch (error) {
+      console.error("Failed to copy document content:", error);
+      setCopyStatus("error");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    }
+  };
+
   return (
     <header className="sticky top-0 flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
       <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
@@ -207,9 +230,21 @@ export function DocumentHeader({
           </IconButton>
         </div>
 
-        <IconButton ariaLabel="Copy">
-          <CopyIcon />
-        </IconButton>
+        <div className="relative">
+          <IconButton ariaLabel={copyStatus === "copied" ? "Copied!" : "Copy as Markdown"} onClick={handleCopy}>
+            <CopyIcon />
+          </IconButton>
+          {copyStatus === "copied" && (
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-green-800 text-white text-xs px-2 py-1 rounded z-50">
+              Copied!
+            </div>
+          )}
+          {copyStatus === "error" && (
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-red-800 text-white text-xs px-2 py-1 rounded z-50">
+              Failed to copy
+            </div>
+          )}
+        </div>
 
         <IconButton ariaLabel="Share">
           <ShareIcon />

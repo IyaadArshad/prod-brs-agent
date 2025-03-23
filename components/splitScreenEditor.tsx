@@ -159,6 +159,20 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
         .milkdown-editor ::selection {
           background: #085eec !important;
         }
+
+        milkdown-block-handle .operation-item:hover {
+          background-color: #2f2f2f !important;
+          cursor: pointer !important;
+        }
+        milkdown-block-handle {
+          cursor: pointer !important;
+        }
+        milkdown-block-handle svg {
+          cursor: pointer !important;
+        } 
+        p .crepe-placeholder {
+          color: #fff !important;
+        }         
         `}</style>
       <div
         ref={editorRef}
