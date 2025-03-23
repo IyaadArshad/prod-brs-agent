@@ -66,7 +66,7 @@ function LoadingAnimation() {
   );
 }
 
-export function DocumentViewer({
+function DocumentViewer({
   fileName,
   isEditing = false,
 }: SplitScreenEditorProps) {
