@@ -79,7 +79,7 @@ function NextVersionIcon() {
   );
 }
 
-export function PreviousVersionIcon() {
+function PreviousVersionIcon() {
   return (
     <svg
       width="28"
@@ -172,7 +172,7 @@ export function DocumentHeader({
   onClose,
   onMoveSide,
   moveLabel,
-  documentContent = "", // Default to empty string
+  documentContent = "",
 }: DocumentHeaderProps) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
 
