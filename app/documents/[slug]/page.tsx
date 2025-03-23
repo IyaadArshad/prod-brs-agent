@@ -4,12 +4,14 @@ import React from "react";
 import { Crepe } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
+import { useSearchParams as useNextSearchParams } from 'next/navigation';
 import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 interface SplitScreenEditorProps {
   fileName: string;
+  isEditing?: boolean;
 }
 
 function LoadingAnimation() {
@@ -64,11 +66,9 @@ function LoadingAnimation() {
   );
 }
 
-export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
+export function DocumentViewer({ fileName, isEditing = false }: SplitScreenEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
-  const crepeInstanceRef = useRef<Awaited<ReturnType<Crepe["create"]>> | null>(
-    null
-  );
+  const crepeRef = useRef<Crepe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [markdown, setMarkdown] = useState<string>("");
 
@@ -116,10 +116,10 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
     fetchData();
 
     return () => {
-      if (crepeInstanceRef.current) {
+      if (crepeRef.current) {
         console.log("[DocumentViewer] Destroying editor instance.");
-        crepeInstanceRef.current.destroy();
-        crepeInstanceRef.current = null;
+        crepeRef.current.destroy();
+        crepeRef.current = null;
       }
     };
   }, [fileName]);
@@ -129,7 +129,7 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
       !isLoading &&
       markdown &&
       editorRef.current &&
-      !crepeInstanceRef.current
+      !crepeRef.current
     ) {
       console.log(
         "[DocumentViewer] Initializing editor with markdown:",
@@ -137,10 +137,23 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
       );
       (async () => {
         try {
-          crepeInstanceRef.current = await new Crepe({
+          // Create a new Crepe instance
+          const crepe = new Crepe({
             root: editorRef.current,
             defaultValue: markdown,
-          }).create();
+          });
+          
+          // Store the Crepe instance
+          crepeRef.current = crepe;
+          
+          // Create the editor
+          await crepe.create();
+          
+          // When isEditing=true: setReadonly(false) → Editor is editable
+          // When isEditing=false: setReadonly(true) → Editor is read-only (not editable)
+          crepe.setReadonly(!isEditing);
+          console.log(`[DocumentViewer] Editor read-only mode set to: ${!isEditing} (isEditing: ${isEditing})`);
+          
           console.log("[DocumentViewer] Editor created successfully.");
         } catch (err) {
           console.error("[DocumentViewer] Error initializing editor:", err);
@@ -155,10 +168,20 @@ export function DocumentViewer({ fileName }: SplitScreenEditorProps) {
         "editorRef:",
         editorRef.current,
         "instance exists:",
-        !!crepeInstanceRef.current
+        !!crepeRef.current
       );
     }
-  }, [isLoading, markdown]);
+  }, [isLoading, markdown, isEditing]);
+
+  // When isEditing changes, update the read-only state
+  useEffect(() => {
+    if (crepeRef.current) {
+      // When isEditing=true: setReadonly(false) → Editor is editable
+      // When isEditing=false: setReadonly(true) → Editor is read-only (not editable)
+      crepeRef.current.setReadonly(!isEditing);
+      console.log(`[DocumentViewer] Updated editor read-only mode to: ${!isEditing} (isEditing: ${isEditing})`);
+    }
+  }, [isEditing]);
 
   if (!fileName) {
     return <div className="text-white p-4">Loading document...</div>;
@@ -304,6 +327,8 @@ export default function DocumentPage({
 }) {
   const unwrappedParams = use(params);
   const fileName = unwrappedParams.slug;
+  const searchParams = useNextSearchParams();
+  const isEditing = searchParams?.get('isEditing') === 'true';
 
   return (
     <main className="flex min-h-screen flex-col bg-[#1e1e1e]">
@@ -383,7 +408,7 @@ export default function DocumentPage({
               </span>
             </div>
           </div>
-          <DocumentViewer fileName={fileName} />
+          <DocumentViewer fileName={fileName} isEditing={isEditing} />
         </div>
       </div>
     </main>
