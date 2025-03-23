@@ -24,8 +24,32 @@ declare global {
   }
 }
 
-export default function ChatInterface() {
+function SearchParamsHandler({ onParamsChange }: { 
+  onParamsChange: (splitScreen: string | null, fileName: string | null) => void 
+}) {
   const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    const splitScreenParam = searchParams.get('splitScreen');
+    const fileNameParam = searchParams.get('fileName');
+    onParamsChange(splitScreenParam, fileNameParam);
+  }, [searchParams, onParamsChange]);
+  
+  return null;
+}
+
+export default function ChatInterface() {
+  const handleSearchParamsChange = (splitScreen: string | null, fileName: string | null) => {
+    if (splitScreen === 'true' && fileName) {
+      setSplitView(true);
+      setOpenedDocument(fileName);
+      setIsConversationStarted(true);
+    }
+  };
+
+  // Use SearchParamsHandler properly
+  const searchParams = useSearchParams();
+  <SearchParamsHandler onParamsChange={handleSearchParamsChange} />;
   const [message, setMessage] = useState("");
   const [commandFilter, setCommandFilter] = useState("");
   const [splitView, setSplitView] = useState(false);
@@ -607,18 +631,27 @@ export default function ChatInterface() {
     }
   };
 
-  const handleRegenerateMessage = async (id: string) => {
-    const index = messages.findIndex((msg) => msg.id === id);
-    if (index !== -1) {
-      const previousUserMessage = messages[index - 1];
-      if (previousUserMessage && previousUserMessage.role === "user") {
-        setMessages((prev) => prev.slice(0, index));
-        await fetchAIResponse(previousUserMessage);
-      }
+  const handleRegenerateMessage = async (id: string): Promise<void> => {
+    // Find the index of the message to regenerate
+    const index = messages.findIndex(msg => msg.id === id);
+    if (index === -1) return;
+    
+    // Find the preceding user message
+    let userMessageIndex = index - 1;
+    while (userMessageIndex >= 0 && messages[userMessageIndex].role !== 'user') {
+      userMessageIndex--;
+    }
+    
+    if (userMessageIndex >= 0) {
+      // Remove all messages after the user message
+      setMessages(prev => prev.slice(0, userMessageIndex + 1));
+      // Regenerate the response based on the user message
+      await fetchAIResponse(messages[userMessageIndex]);
     }
   };
-
-  // Check for URL query parameters on component mount
+  
+  // This effect is now handled by the SearchParamsHandler component
+  // through the handleSearchParamsChange function
   useEffect(() => {
     const splitScreenParam = searchParams.get('splitScreen');
     const fileNameParam = searchParams.get('fileName');
