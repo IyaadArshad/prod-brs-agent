@@ -1,4 +1,3 @@
-import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,7 +11,7 @@ interface DocumentHeaderProps {
   onClose: () => void;
   onMoveSide: () => void;
   moveLabel: string;
-  documentContent?: string; // Add prop for document content
+  documentContent?: string;
 }
 
 function ShareIcon() {
