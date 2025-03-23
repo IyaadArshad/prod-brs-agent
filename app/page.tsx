@@ -16,6 +16,7 @@ import { MessageComponent } from "@/components/home/MessageComponent";
 import { SplitScreenEditor } from "@/components/splitScreenEditor";
 import { DocumentHeader } from "@/components/DocumentHeader";
 import { ChatInputBox } from "@/components/ChatInputBox";
+import { useSearchParams } from "next/navigation";
 
 declare global {
   interface Window {
@@ -24,6 +25,7 @@ declare global {
 }
 
 export default function ChatInterface() {
+  const searchParams = useSearchParams();
   const [message, setMessage] = useState("");
   const [commandFilter, setCommandFilter] = useState("");
   const [splitView, setSplitView] = useState(false);
@@ -615,6 +617,17 @@ export default function ChatInterface() {
       }
     }
   };
+
+  // Check for URL query parameters on component mount
+  useEffect(() => {
+    const splitScreenParam = searchParams.get('splitScreen');
+    const fileNameParam = searchParams.get('fileName');
+    
+    if (splitScreenParam === 'true' && fileNameParam) {
+      setSplitView(true);
+      setOpenedDocument(fileNameParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (splitView && openedDocument) {
