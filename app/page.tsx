@@ -626,6 +626,7 @@ export default function ChatInterface() {
     if (splitScreenParam === 'true' && fileNameParam) {
       setSplitView(true);
       setOpenedDocument(fileNameParam);
+      setIsConversationStarted(true); // Set conversation started to true to skip welcome screen
     }
   }, [searchParams]);
 
