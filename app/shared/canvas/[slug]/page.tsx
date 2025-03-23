@@ -193,11 +193,11 @@ function DocumentViewer({
           // Extract the latest version content from the new data structure
           const fileData = data.data;
           console.log("[DocumentViewer] File data:", fileData);
-          
+
           // Get the latest version number and content
           const latestVersion = fileData.data.latestVersion;
           md = fileData.data.versions[latestVersion];
-          
+
           console.log("[DocumentViewer] Using latest version:", latestVersion);
           console.log("[DocumentViewer] Content:", md);
         } else {
@@ -472,55 +472,72 @@ function DocumentViewer({
               !isEditing ? "read-only-editor" : ""
             }`}
           />
-            <div className="floating-action-buttons mr-6 mb-4 flex-col p-5 shadow-lg shadow-black/50">
-            <button 
-              className="action-button mb-2 p-1.5" 
+          <div className="floating-action-buttons mr-6 mb-4 flex-col p-5 shadow-lg shadow-black/50">
+            <button
+              className="action-button mb-2 p-1.5"
               title="Toggle actions menu"
               onClick={() => {
-              const buttons = document.querySelectorAll('.floating-action-buttons .action-button:not(:first-child)');
-              const icon = document.querySelector('.floating-action-buttons .action-button:first-child div');
-              
-              buttons.forEach(button => {
-              const el = button as HTMLElement;
-              el.style.display = el.style.display === 'none' ? 'flex' : 'none';
-              });
-              
-              if (icon) {
-              icon.classList.toggle('rotate-180');
-              const parentButton = icon.closest('.action-button') as HTMLElement;
-              if (parentButton) {
-                parentButton.style.marginBottom = icon.classList.contains('rotate-180') ? '0' : '0.5rem';
-              }
-              }
+                const buttons = document.querySelectorAll(
+                  ".floating-action-buttons .action-button:not(:first-child)"
+                );
+                const icon = document.querySelector(
+                  ".floating-action-buttons .action-button:first-child div"
+                );
+
+                buttons.forEach((button) => {
+                  const el = button as HTMLElement;
+                  el.style.display =
+                    el.style.display === "none" ? "flex" : "none";
+                });
+
+                if (icon) {
+                  icon.classList.toggle("rotate-180");
+                  const parentButton = icon.closest(
+                    ".action-button"
+                  ) as HTMLElement;
+                  if (parentButton) {
+                    parentButton.style.marginBottom = icon.classList.contains(
+                      "rotate-180"
+                    )
+                      ? "0"
+                      : "0.5rem";
+                  }
+                }
               }}
             >
               <div className="transform transition-transform duration-200">
-              <DropdownIcon />
+                <DropdownIcon />
               </div>
-            </button>    
-            
-            <button 
-              className="action-button mb-2 p-1.5" 
+            </button>
+
+            <button
+              className="action-button mb-2 p-1.5"
               title="Copy document"
               onClick={() => {
-              if (crepeRef.current) {
-                navigator.clipboard.writeText(markdown);
-                alert("Document content copied to clipboard!");
-              }
+                if (crepeRef.current) {
+                  navigator.clipboard.writeText(markdown);
+                  alert("Document content copied to clipboard!");
+                }
               }}
             >
               <CopyIcon />
             </button>
-            <button className="action-button mb-2 p-1.5" title="Previous version">
+            <button
+              className="action-button mb-2 p-1.5"
+              title="Previous version"
+            >
               <PreviousVersionIcon />
             </button>
             <button className="action-button mb-2 p-1.5" title="Next version">
               <NextVersionIcon />
             </button>
-            <button className="action-button version-history p-1.5" title="Version history">
+            <button
+              className="action-button version-history p-1.5"
+              title="Version history"
+            >
               <VersionHistoryIcon />
             </button>
-            </div>
+          </div>
         </>
       )}
     </>
@@ -567,11 +584,18 @@ export default function DocumentPage({
                 <div className="flex flex-col gap-1.5 text-xs text-token-text-secondary xs:flex-col sm:flex-row">
                   <div className="cursor-default">
                     <span className="" data-state="closed">
-                      {isEditing ? "You’re editing a shared user-generated BRS document" : "You’re viewing a shared user-generated BRS document"}
+                      {isEditing
+                        ? "You’re editing a shared user-generated BRS document"
+                        : "You’re viewing a shared user-generated BRS document"}
                     </span>
                   </div>
                   <div>
-                    <button onClick={() => window.location.href = `?isEditing=${!isEditing}`} className="underline">
+                    <button
+                      onClick={() =>
+                        (window.location.href = `?isEditing=${!isEditing}`)
+                      }
+                      className="underline"
+                    >
                       {isEditing ? "Switch to view mode" : "Edit"}
                     </button>
                   </div>

@@ -24,23 +24,28 @@ declare global {
   }
 }
 
-function SearchParamsHandler({ onParamsChange }: { 
-  onParamsChange: (splitScreen: string | null, fileName: string | null) => void 
+function SearchParamsHandler({
+  onParamsChange,
+}: {
+  onParamsChange: (splitScreen: string | null, fileName: string | null) => void;
 }) {
   const searchParams = useSearchParams();
-  
+
   useEffect(() => {
-    const splitScreenParam = searchParams.get('splitScreen');
-    const fileNameParam = searchParams.get('fileName');
+    const splitScreenParam = searchParams.get("splitScreen");
+    const fileNameParam = searchParams.get("fileName");
     onParamsChange(splitScreenParam, fileNameParam);
   }, [searchParams, onParamsChange]);
-  
+
   return null;
 }
 
 export default function ChatInterface() {
-  const handleSearchParamsChange = (splitScreen: string | null, fileName: string | null) => {
-    if (splitScreen === 'true' && fileName) {
+  const handleSearchParamsChange = (
+    splitScreen: string | null,
+    fileName: string | null
+  ) => {
+    if (splitScreen === "true" && fileName) {
       setSplitView(true);
       setOpenedDocument(fileName);
       setIsConversationStarted(true);
@@ -137,20 +142,20 @@ export default function ChatInterface() {
       }
       newWidth = Math.max(25, Math.min(75, newWidth));
       setEditorWidth(newWidth);
-      document.body.style.cursor = 'col-resize'; // Change cursor during drag
+      document.body.style.cursor = "col-resize"; // Change cursor during drag
     }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    document.body.style.userSelect = 'auto';
-    document.body.style.cursor = 'default'; // Reset cursor when done
+    document.body.style.userSelect = "auto";
+    document.body.style.cursor = "default"; // Reset cursor when done
   };
 
   const handleMouseDown = () => {
     setIsDragging(true);
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'col-resize'; // Set resize cursor on mousedown
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize"; // Set resize cursor on mousedown
   };
 
   useEffect(() => {
@@ -633,30 +638,33 @@ export default function ChatInterface() {
 
   const handleRegenerateMessage = async (id: string): Promise<void> => {
     // Find the index of the message to regenerate
-    const index = messages.findIndex(msg => msg.id === id);
+    const index = messages.findIndex((msg) => msg.id === id);
     if (index === -1) return;
-    
+
     // Find the preceding user message
     let userMessageIndex = index - 1;
-    while (userMessageIndex >= 0 && messages[userMessageIndex].role !== 'user') {
+    while (
+      userMessageIndex >= 0 &&
+      messages[userMessageIndex].role !== "user"
+    ) {
       userMessageIndex--;
     }
-    
+
     if (userMessageIndex >= 0) {
       // Remove all messages after the user message
-      setMessages(prev => prev.slice(0, userMessageIndex + 1));
+      setMessages((prev) => prev.slice(0, userMessageIndex + 1));
       // Regenerate the response based on the user message
       await fetchAIResponse(messages[userMessageIndex]);
     }
   };
-  
+
   // This effect is now handled by the SearchParamsHandler component
   // through the handleSearchParamsChange function
   useEffect(() => {
-    const splitScreenParam = searchParams.get('splitScreen');
-    const fileNameParam = searchParams.get('fileName');
-    
-    if (splitScreenParam === 'true' && fileNameParam) {
+    const splitScreenParam = searchParams.get("splitScreen");
+    const fileNameParam = searchParams.get("fileName");
+
+    if (splitScreenParam === "true" && fileNameParam) {
       setSplitView(true);
       setOpenedDocument(fileNameParam);
       setIsConversationStarted(true); // Set conversation started to true to skip welcome screen
@@ -838,11 +846,11 @@ export default function ChatInterface() {
               </>
             )}
           </div>
-            <div
+          <div
             className="w-[4px] transition-colors duration-300 hover:bg-[#555555] bg-black cursor-col-resize"
             onMouseDown={handleMouseDown}
-            />
-            {/* Left pane on right side with left border */}
+          />
+          {/* Left pane on right side with left border */}
           <div
             className="border-l screen border-black overflow-y-auto"
             style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
@@ -850,13 +858,13 @@ export default function ChatInterface() {
             <div>
               {/* Document header bar - now using the component */}
               <div className="bg-[#2f2f2f] sticky top-0 z-10">
-              <DocumentHeader
-                documentName={openedDocument}
-                onClose={handleDocumentClose}
-                onMoveSide={() => setLeftPaneToRight(false)}
-                moveLabel="Move to left side"
-                documentContent={fileContent}
-              />
+                <DocumentHeader
+                  documentName={openedDocument}
+                  onClose={handleDocumentClose}
+                  onMoveSide={() => setLeftPaneToRight(false)}
+                  moveLabel="Move to left side"
+                  documentContent={fileContent}
+                />
               </div>
 
               {/* Editor content */}
@@ -889,13 +897,13 @@ export default function ChatInterface() {
             <div>
               {/* Document header bar - now using the component */}
               <div className="bg-[#2f2f2f] sticky top-0 z-10">
-              <DocumentHeader
-                documentName={openedDocument}
-                onClose={handleDocumentClose}
-                onMoveSide={() => setLeftPaneToRight(true)}
-                moveLabel="Move to right side"
-                documentContent={fileContent}
-              />
+                <DocumentHeader
+                  documentName={openedDocument}
+                  onClose={handleDocumentClose}
+                  onMoveSide={() => setLeftPaneToRight(true)}
+                  moveLabel="Move to right side"
+                  documentContent={fileContent}
+                />
               </div>
               {/* Editor content */}
               {isFileLoading ? (
