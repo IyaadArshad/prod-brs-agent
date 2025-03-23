@@ -4,7 +4,7 @@ import React from "react";
 import { Crepe } from "@milkdown/crepe";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
-import { useSearchParams as useNextSearchParams } from 'next/navigation';
+import { useSearchParams as useNextSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
@@ -66,7 +66,10 @@ function LoadingAnimation() {
   );
 }
 
-export function DocumentViewer({ fileName, isEditing = false }: SplitScreenEditorProps) {
+export function DocumentViewer({
+  fileName,
+  isEditing = false,
+}: SplitScreenEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const crepeRef = useRef<Crepe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,12 +128,7 @@ export function DocumentViewer({ fileName, isEditing = false }: SplitScreenEdito
   }, [fileName]);
 
   useEffect(() => {
-    if (
-      !isLoading &&
-      markdown &&
-      editorRef.current &&
-      !crepeRef.current
-    ) {
+    if (!isLoading && markdown && editorRef.current && !crepeRef.current) {
       console.log(
         "[DocumentViewer] Initializing editor with markdown:",
         markdown
@@ -142,18 +140,20 @@ export function DocumentViewer({ fileName, isEditing = false }: SplitScreenEdito
             root: editorRef.current,
             defaultValue: markdown,
           });
-          
+
           // Store the Crepe instance
           crepeRef.current = crepe;
-          
+
           // Create the editor
           await crepe.create();
-          
+
           // When isEditing=true: setReadonly(false) → Editor is editable
           // When isEditing=false: setReadonly(true) → Editor is read-only (not editable)
           crepe.setReadonly(!isEditing);
-          console.log(`[DocumentViewer] Editor read-only mode set to: ${!isEditing} (isEditing: ${isEditing})`);
-          
+          console.log(
+            `[DocumentViewer] Editor read-only mode set to: ${!isEditing} (isEditing: ${isEditing})`
+          );
+
           console.log("[DocumentViewer] Editor created successfully.");
         } catch (err) {
           console.error("[DocumentViewer] Error initializing editor:", err);
@@ -179,7 +179,9 @@ export function DocumentViewer({ fileName, isEditing = false }: SplitScreenEdito
       // When isEditing=true: setReadonly(false) → Editor is editable
       // When isEditing=false: setReadonly(true) → Editor is read-only (not editable)
       crepeRef.current.setReadonly(!isEditing);
-      console.log(`[DocumentViewer] Updated editor read-only mode to: ${!isEditing} (isEditing: ${isEditing})`);
+      console.log(
+        `[DocumentViewer] Updated editor read-only mode to: ${!isEditing} (isEditing: ${isEditing})`
+      );
     }
   }, [isEditing]);
 
@@ -328,7 +330,7 @@ export default function DocumentPage({
   const unwrappedParams = use(params);
   const fileName = unwrappedParams.slug;
   const searchParams = useNextSearchParams();
-  const isEditing = searchParams?.get('isEditing') === 'true';
+  const isEditing = searchParams?.get("isEditing") === "true";
 
   return (
     <main className="flex min-h-screen flex-col bg-[#1e1e1e]">
