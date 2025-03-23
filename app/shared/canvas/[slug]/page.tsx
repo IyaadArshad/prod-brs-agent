@@ -377,11 +377,13 @@ export default function DocumentPage({
                 <div className="flex flex-col gap-1.5 text-xs text-token-text-secondary xs:flex-col sm:flex-row">
                   <div className="cursor-default">
                     <span className="" data-state="closed">
-                      You’re viewing a shared user-generated BRS document
+                      {isEditing ? "You’re editing a shared user-generated BRS document" : "You’re viewing a shared user-generated BRS document"}
                     </span>
                   </div>
                   <div>
-                    <button className="underline">Edit</button>
+                    <button onClick={() => window.location.href = `?isEditing=${!isEditing}`} className="underline">
+                      {isEditing ? "Switch to view mode" : "Edit"}
+                    </button>
                   </div>
                 </div>
               </div>
