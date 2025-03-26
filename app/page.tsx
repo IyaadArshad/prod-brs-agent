@@ -79,6 +79,11 @@ export default function ChatInterface() {
     search: false,
     reason: false,
   });
+  const [versionData, setVersionData] = useState<{
+    currentVersion: number;
+    latestVersion: number;
+    versions: Record<string, string> | null;
+  } | null>(null);
 
   const handleUserRegistration = async () => {
     if (!newUserName.trim() || !newUserEmail.trim()) return;
@@ -674,23 +679,53 @@ export default function ChatInterface() {
   useEffect(() => {
     if (splitView && openedDocument) {
       setIsFileLoading(true);
-      fetch(`/api/legacy/data/readFile?file_name=${openedDocument}`)
+      // Use the new rawFetch endpoint
+      fetch(`/api/v3/editor/rawFetch?file_name=${openedDocument}`)
         .then((res) => res.json())
-        .then((data) => {
-          if (data.success) setFileContent(data.data);
-          else setFileContent("");
+        .then((response) => {
+          if (response.success && response.data) {
+            const { data } = response;
+            
+            // Check if data has versions
+            if (data.data && data.data.versions && data.data.latestVersion) {
+              const latestVersion = data.data.latestVersion;
+              const versions = data.data.versions;
+              
+              // Set the file content to the latest version
+              setFileContent(versions[latestVersion.toString()] || "");
+              
+              // Store version data for navigation
+              setVersionData({
+                currentVersion: latestVersion,
+                latestVersion: latestVersion,
+                versions: versions
+              });
+            } else {
+              // Fallback to legacy behavior for files without versioning
+              setFileContent(data.content || "");
+              setVersionData(null);
+            }
+          } else {
+            setFileContent("");
+            setVersionData(null);
+          }
         })
-        .catch((error) => console.error("Error reading file:", error))
+        .catch((error) => {
+          console.error("Error reading file:", error);
+          setFileContent("");
+          setVersionData(null);
+        })
         .finally(() => setIsFileLoading(false));
     }
   }, [openedDocument, splitView]);
 
-  // Remove the useEffect that previously rendered markdown via renderDocument
-  // useEffect(() => {
-  //   if (fileContent) {
-  //     setRenderedContent(renderDocument(fileContent));
-  //   }
-  // }, [fileContent]);
+  // Handle version selection
+  const handleSelectVersion = (version: number) => {
+    if (versionData && versionData.versions && versionData.versions[version.toString()]) {
+      setFileContent(versionData.versions[version.toString()]);
+      setVersionData(prev => prev ? { ...prev, currentVersion: version } : null);
+    }
+  };
 
   const handleDocumentClose = () => {
     setSplitView(false);
@@ -864,6 +899,8 @@ export default function ChatInterface() {
                   onMoveSide={() => setLeftPaneToRight(false)}
                   moveLabel="Move to left side"
                   documentContent={fileContent}
+                  versionData={versionData || undefined}
+                  onSelectVersion={handleSelectVersion}
                 />
               </div>
 
@@ -903,6 +940,8 @@ export default function ChatInterface() {
                   onMoveSide={() => setLeftPaneToRight(true)}
                   moveLabel="Move to right side"
                   documentContent={fileContent}
+                  versionData={versionData || undefined}
+                  onSelectVersion={handleSelectVersion}
                 />
               </div>
               {/* Editor content */}

@@ -15,10 +15,26 @@ export function SplitScreenEditor({ markdown }: SplitScreenEditorProps) {
     null
   );
 
+  // Use key to force recreation of editor when markdown changes
+  const markdownKey = useRef(markdown);
+
   useEffect(() => {
+    // Cleanup previous instance when markdown changes
+    if (crepeInstanceRef.current && markdownKey.current !== markdown) {
+      crepeInstanceRef.current.destroy();
+      crepeInstanceRef.current = null;
+    }
+
+    markdownKey.current = markdown;
+
     const initEditor = async () => {
       if (editorRef.current && !crepeInstanceRef.current) {
         try {
+          // Ensure the element is empty before creating a new instance
+          if (editorRef.current.firstChild) {
+            editorRef.current.innerHTML = '';
+          }
+          
           crepeInstanceRef.current = await new Crepe({
             root: editorRef.current,
             defaultValue: markdown,

@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { ShareDialog } from "@/components/ShareDialog";
+import { VersionHistoryDialog } from "@/components/VersionHistoryDialog";
 
 interface DocumentHeaderProps {
   documentName: string;
@@ -13,6 +14,12 @@ interface DocumentHeaderProps {
   onMoveSide: () => void;
   moveLabel: string;
   documentContent?: string;
+  versionData?: {
+    currentVersion: number;
+    latestVersion: number;
+    versions: Record<string, string> | null;
+  };
+  onSelectVersion?: (version: number) => void;
 }
 
 function ShareIcon() {
@@ -174,11 +181,14 @@ export function DocumentHeader({
   onMoveSide,
   moveLabel,
   documentContent = "",
+  versionData,
+  onSelectVersion,
 }: DocumentHeaderProps) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
     "idle"
   );
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
 
   const handleCopy = async () => {
     if (!documentContent) return;
@@ -195,6 +205,28 @@ export function DocumentHeader({
     }
   };
 
+  const canGoToPreviousVersion = versionData?.currentVersion !== undefined && versionData?.currentVersion > 1;
+  const canGoToNextVersion = versionData?.currentVersion !== undefined && versionData?.currentVersion < (versionData?.latestVersion || 0);
+
+  const handleVersionSelect = (version: number) => {
+    if (onSelectVersion) {
+      onSelectVersion(version);
+      setIsVersionHistoryOpen(false);
+    }
+  };
+
+  const handlePreviousVersion = () => {
+    if (canGoToPreviousVersion && onSelectVersion && versionData) {
+      onSelectVersion(versionData.currentVersion - 1);
+    }
+  };
+
+  const handleNextVersion = () => {
+    if (canGoToNextVersion && onSelectVersion && versionData) {
+      onSelectVersion(versionData.currentVersion + 1);
+    }
+  };
+
   return (
     <>
       <header className="sticky top-0 flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
@@ -203,6 +235,8 @@ export function DocumentHeader({
             <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
               <h1 className="max-w-[290px] overflow-hidden truncate text-xl font-sans text-gray-100 pr-2 pl-3">
                 {documentName}
+                {versionData && versionData.currentVersion !== versionData.latestVersion && 
+                  ` (v${versionData.currentVersion})`}
               </h1>
               <div className="flex items-center pr-1">
                 <DropdownIcon />
@@ -221,15 +255,26 @@ export function DocumentHeader({
 
         <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
           <div className="flex items-center gap-1.5">
-            <IconButton ariaLabel="Version History">
+            <IconButton 
+              ariaLabel="Version History" 
+              onClick={() => setIsVersionHistoryOpen(true)}
+            >
               <VersionHistoryIcon />
             </IconButton>
 
-            <IconButton ariaLabel="Previous Version" disabled>
+            <IconButton 
+              ariaLabel="Previous Version" 
+              disabled={!canGoToPreviousVersion}
+              onClick={handlePreviousVersion}
+            >
               <PreviousVersionIcon />
             </IconButton>
 
-            <IconButton ariaLabel="Next Version" disabled>
+            <IconButton 
+              ariaLabel="Next Version" 
+              disabled={!canGoToNextVersion}
+              onClick={handleNextVersion}
+            >
               <NextVersionIcon />
             </IconButton>
           </div>
@@ -270,6 +315,18 @@ export function DocumentHeader({
         onClose={() => setIsShareDialogOpen(false)}
         documentName={documentName}
       />
+
+      {/* Version History Dialog */}
+      {versionData && (
+        <VersionHistoryDialog
+          isOpen={isVersionHistoryOpen}
+          onClose={() => setIsVersionHistoryOpen(false)}
+          versions={versionData.versions}
+          currentVersion={versionData.currentVersion}
+          onSelectVersion={handleVersionSelect}
+          documentName={documentName}
+        />
+      )}
     </>
   );
 }
