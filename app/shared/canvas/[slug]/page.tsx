@@ -154,7 +154,14 @@ function SavePlusIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="18" cy="6" r="5" fill="#2f2f2f" stroke="#e3e3e3" strokeWidth="1" />
+      <circle
+        cx="18"
+        cy="6"
+        r="5"
+        fill="#2f2f2f"
+        stroke="#e3e3e3"
+        strokeWidth="1"
+      />
       <path
         d="M18 3.5V8.5M15.5 6H20.5"
         stroke="#e3e3e3"
@@ -378,7 +385,9 @@ function DocumentViewer({
   // Function to save the current content to the current version
   const saveCurrentVersion = async () => {
     if (!isEditing || !crepeRef.current || !fileId || latestVersion === null) {
-      console.log("[DocumentViewer] Cannot save: not in edit mode or missing data");
+      console.log(
+        "[DocumentViewer] Cannot save: not in edit mode or missing data"
+      );
       return;
     }
 
@@ -388,11 +397,11 @@ function DocumentViewer({
     try {
       // Get the current content from the editor
       const currentContent = crepeRef.current.getMarkdown();
-      
-      const response = await fetch('/api/v3/editor/updateFile', {
-        method: 'POST',
+
+      const response = await fetch("/api/v3/editor/updateFile", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fileId,
@@ -402,7 +411,7 @@ function DocumentViewer({
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         setSaveMessage("Document saved successfully!");
         setTimeout(() => setSaveMessage(null), 3000);
@@ -422,7 +431,9 @@ function DocumentViewer({
   // Function to create a new version with the current content
   const createNewVersion = async () => {
     if (!isEditing || !crepeRef.current || !fileId || latestVersion === null) {
-      console.log("[DocumentViewer] Cannot create new version: not in edit mode or missing data");
+      console.log(
+        "[DocumentViewer] Cannot create new version: not in edit mode or missing data"
+      );
       return;
     }
 
@@ -432,11 +443,11 @@ function DocumentViewer({
     try {
       // Get the current content from the editor
       const currentContent = crepeRef.current.getMarkdown();
-      
-      const response = await fetch('/api/v3/editor/createVersion', {
-        method: 'POST',
+
+      const response = await fetch("/api/v3/editor/createVersion", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fileId,
@@ -446,7 +457,7 @@ function DocumentViewer({
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Update the latest version number
         setLatestVersion(data.data.latestVersion);
@@ -755,8 +766,8 @@ function DocumentViewer({
             >
               <PreviousVersionIcon />
             </button>
-            <button 
-              className="action-button mb-2 p-1.5" 
+            <button
+              className="action-button mb-2 p-1.5"
               title="Next version"
               disabled={isSaving}
             >
@@ -770,9 +781,7 @@ function DocumentViewer({
               <VersionHistoryIcon />
             </button>
           </div>
-          {saveMessage && (
-            <div className="save-message">{saveMessage}</div>
-          )}
+          {saveMessage && <div className="save-message">{saveMessage}</div>}
         </>
       )}
     </>

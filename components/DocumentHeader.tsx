@@ -175,12 +175,14 @@ export function DocumentHeader({
   moveLabel,
   documentContent = "",
 }: DocumentHeaderProps) {
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const handleCopy = async () => {
     if (!documentContent) return;
-    
+
     try {
       await navigator.clipboard.writeText(documentContent);
       setCopyStatus("copied");
@@ -233,7 +235,12 @@ export function DocumentHeader({
           </div>
 
           <div className="relative">
-            <IconButton ariaLabel={copyStatus === "copied" ? "Copied!" : "Copy as Markdown"} onClick={handleCopy}>
+            <IconButton
+              ariaLabel={
+                copyStatus === "copied" ? "Copied!" : "Copy as Markdown"
+              }
+              onClick={handleCopy}
+            >
               <CopyIcon />
             </IconButton>
             {copyStatus === "copied" && (
@@ -248,17 +255,20 @@ export function DocumentHeader({
             )}
           </div>
 
-          <IconButton ariaLabel="Share" onClick={() => setIsShareDialogOpen(true)}>
+          <IconButton
+            ariaLabel="Share"
+            onClick={() => setIsShareDialogOpen(true)}
+          >
             <ShareIcon />
           </IconButton>
         </div>
       </header>
-      
+
       {/* Share Dialog */}
-      <ShareDialog 
-        isOpen={isShareDialogOpen} 
-        onClose={() => setIsShareDialogOpen(false)} 
-        documentName={documentName} 
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        documentName={documentName}
       />
     </>
   );

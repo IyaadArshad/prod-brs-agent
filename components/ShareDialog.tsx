@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -7,9 +12,13 @@ interface ShareDialogProps {
   documentName: string;
 }
 
-export function ShareDialog({ isOpen, onClose, documentName }: ShareDialogProps) {
+export function ShareDialog({
+  isOpen,
+  onClose,
+  documentName,
+}: ShareDialogProps) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
-  
+
   // Create a URL-friendly slug from the document name
   // Use the document name directly without modifications
   const shareUrl = `https://brs-agent.datamation.lk/shared/canvas/${documentName}`;
@@ -31,7 +40,7 @@ export function ShareDialog({ isOpen, onClose, documentName }: ShareDialogProps)
             Share '{documentName.replace(/\.\w+$/, "")}'
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="mt-4 space-y-4">
           <div className="flex items-center bg-[#1e1e1e] rounded-lg overflow-hidden pr-2">
             <input
@@ -47,9 +56,10 @@ export function ShareDialog({ isOpen, onClose, documentName }: ShareDialogProps)
               {copyStatus === "copied" ? "Copied!" : "Copy"}
             </button>
           </div>
-          
+
           <p className="text-sm text-gray-300">
-            Anyone with the link can view and edit. Your chat messages will not be shared.
+            Anyone with the link can view and edit. Your chat messages will not
+            be shared.
           </p>
         </div>
       </DialogContent>
