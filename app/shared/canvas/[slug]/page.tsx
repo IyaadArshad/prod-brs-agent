@@ -86,6 +86,85 @@ function CopyIcon() {
   );
 }
 
+function SaveIcon() {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="#e3e3e3"
+      xmlns="http://www.w3.org/2000/svg"
+      className="icon-xl-heavy"
+    >
+      <path
+        d="M5 5C5 3.89543 5.89543 3 7 3H14.1716C14.702 3 15.2107 3.21071 15.5858 3.58579L18.4142 6.41421C18.7893 6.78929 19 7.29799 19 7.82843V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V5Z"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M17 21V15C17 14.4477 16.5523 14 16 14H8C7.44772 14 7 14.4477 7 15V21"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 3V7H14V3"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SavePlusIcon() {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="#e3e3e3"
+      xmlns="http://www.w3.org/2000/svg"
+      className="icon-xl-heavy"
+    >
+      <path
+        d="M5 5C5 3.89543 5.89543 3 7 3H14.1716C14.702 3 15.2107 3.21071 15.5858 3.58579L18.4142 6.41421C18.7893 6.78929 19 7.29799 19 7.82843V19C19 20.1046 18.1046 21 17 21H7C5.89543 21 5 20.1046 5 19V5Z"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M17 21V15C17 14.4477 16.5523 14 16 14H8C7.44772 14 7 14.4477 7 15V21"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 3V7H14V3"
+        stroke="#e3e3e3"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="18" cy="6" r="5" fill="#2f2f2f" stroke="#e3e3e3" strokeWidth="1" />
+      <path
+        d="M18 3.5V8.5M15.5 6H20.5"
+        stroke="#e3e3e3"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function NextVersionIcon() {
   return (
     <svg
@@ -170,6 +249,10 @@ function DocumentViewer({
   const crepeRef = useRef<Crepe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [markdown, setMarkdown] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
+  const [latestVersion, setLatestVersion] = useState<number | null>(null);
 
   useEffect(() => {
     if (!fileName) {
@@ -195,8 +278,12 @@ function DocumentViewer({
           const fileData = data.data;
           console.log("[DocumentViewer] File data:", fileData);
 
+          // Store file ID for later use in saving
+          setFileId(fileData.id);
+
           // Get the latest version number and content
           const latestVersion = fileData.data.latestVersion;
+          setLatestVersion(latestVersion);
           md = fileData.data.versions[latestVersion];
 
           console.log("[DocumentViewer] Using latest version:", latestVersion);
@@ -287,6 +374,96 @@ function DocumentViewer({
       );
     }
   }, [isEditing]);
+
+  // Function to save the current content to the current version
+  const saveCurrentVersion = async () => {
+    if (!isEditing || !crepeRef.current || !fileId || latestVersion === null) {
+      console.log("[DocumentViewer] Cannot save: not in edit mode or missing data");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Get the current content from the editor
+      const currentContent = crepeRef.current.getMarkdown();
+      
+      const response = await fetch('/api/v3/editor/updateFile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileId,
+          version: latestVersion,
+          content: currentContent,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setSaveMessage("Document saved successfully!");
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setSaveMessage(`Error: ${data.message}`);
+        setTimeout(() => setSaveMessage(null), 5000);
+      }
+    } catch (err) {
+      console.error("[DocumentViewer] Error saving document:", err);
+      setSaveMessage("Error saving document. Please try again.");
+      setTimeout(() => setSaveMessage(null), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Function to create a new version with the current content
+  const createNewVersion = async () => {
+    if (!isEditing || !crepeRef.current || !fileId || latestVersion === null) {
+      console.log("[DocumentViewer] Cannot create new version: not in edit mode or missing data");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Get the current content from the editor
+      const currentContent = crepeRef.current.getMarkdown();
+      
+      const response = await fetch('/api/v3/editor/createVersion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileId,
+          currentVersion: latestVersion,
+          content: currentContent,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update the latest version number
+        setLatestVersion(data.data.latestVersion);
+        setSaveMessage("New version created successfully!");
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setSaveMessage(`Error: ${data.message}`);
+        setTimeout(() => setSaveMessage(null), 5000);
+      }
+    } catch (err) {
+      console.error("[DocumentViewer] Error creating new version:", err);
+      setSaveMessage("Error creating new version. Please try again.");
+      setTimeout(() => setSaveMessage(null), 5000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!fileName) {
     return <div className="text-white p-4">Loading document...</div>;
@@ -461,6 +638,25 @@ function DocumentViewer({
         .action-button.version-history svg {
           fill: #e3e3e3;
         }
+
+        /* Save message styles */
+        .save-message {
+          position: fixed;
+          bottom: 80px;
+          right: 24px;
+          background-color: #2a2a2a;
+          color: #e3e3e3;
+          padding: 8px 16px;
+          border-radius: 4px;
+          z-index: 101;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Disable buttons while saving */
+        .action-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
         
         `}</style>
       {isLoading ? (
@@ -511,6 +707,27 @@ function DocumentViewer({
               </div>
             </button>
 
+            {isEditing && (
+              <>
+                <button
+                  className="action-button mb-2 p-1.5"
+                  title="Save current version"
+                  onClick={saveCurrentVersion}
+                  disabled={isSaving}
+                >
+                  <SaveIcon />
+                </button>
+                <button
+                  className="action-button mb-2 p-1.5"
+                  title="Create new version"
+                  onClick={createNewVersion}
+                  disabled={isSaving}
+                >
+                  <SavePlusIcon />
+                </button>
+              </>
+            )}
+
             <button
               className="action-button mb-2 p-1.5"
               title="Copy document"
@@ -520,31 +737,42 @@ function DocumentViewer({
                   alert("Document content copied to clipboard!");
                 }
               }}
+              disabled={isSaving}
             >
               <CopyIcon />
             </button>
             <button
               className="action-button mb-2 p-1.5"
               title="Download as PDF"
+              disabled={isSaving}
             >
               <Download />
             </button>
             <button
               className="action-button mb-2 p-1.5"
               title="Previous version"
+              disabled={isSaving}
             >
               <PreviousVersionIcon />
             </button>
-            <button className="action-button mb-2 p-1.5" title="Next version">
+            <button 
+              className="action-button mb-2 p-1.5" 
+              title="Next version"
+              disabled={isSaving}
+            >
               <NextVersionIcon />
             </button>
             <button
               className="action-button version-history p-1.5"
               title="Version history"
+              disabled={isSaving}
             >
               <VersionHistoryIcon />
             </button>
           </div>
+          {saveMessage && (
+            <div className="save-message">{saveMessage}</div>
+          )}
         </>
       )}
     </>
