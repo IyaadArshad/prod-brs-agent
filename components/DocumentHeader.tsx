@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { ShareDialog } from "@/components/ShareDialog";
 
 interface DocumentHeaderProps {
   documentName: string;
@@ -175,6 +176,7 @@ export function DocumentHeader({
   documentContent = "",
 }: DocumentHeaderProps) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">("idle");
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const handleCopy = async () => {
     if (!documentContent) return;
@@ -192,63 +194,72 @@ export function DocumentHeader({
   };
 
   return (
-    <header className="sticky top-0 flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
-      <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
-            <h1 className="max-w-[290px] overflow-hidden truncate text-xl font-sans text-gray-100 pr-2 pl-3">
-              {documentName}
-            </h1>
-            <div className="flex items-center pr-1">
-              <DropdownIcon />
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onSelect={onClose}>
-              Close {documentName}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onMoveSide}>
-              {moveLabel}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
-        <div className="flex items-center gap-1.5">
-          <IconButton ariaLabel="Version History">
-            <VersionHistoryIcon />
-          </IconButton>
-
-          <IconButton ariaLabel="Previous Version" disabled>
-            <PreviousVersionIcon />
-          </IconButton>
-
-          <IconButton ariaLabel="Next Version" disabled>
-            <NextVersionIcon />
-          </IconButton>
+    <>
+      <header className="sticky top-0 flex bg-[#2f2f2f] h-14 flex-none border-none items-center justify-between gap-1 px-3">
+        <div className="flex flex-1 basis-0 items-center gap-1 truncate leading-[0]">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="grid grid-cols-[1fr_auto] items-center rounded-lg p-1 hover:bg-[#424242] text-left">
+              <h1 className="max-w-[290px] overflow-hidden truncate text-xl font-sans text-gray-100 pr-2 pl-3">
+                {documentName}
+              </h1>
+              <div className="flex items-center pr-1">
+                <DropdownIcon />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onSelect={onClose}>
+                Close {documentName}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onMoveSide}>
+                {moveLabel}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="relative">
-          <IconButton ariaLabel={copyStatus === "copied" ? "Copied!" : "Copy as Markdown"} onClick={handleCopy}>
-            <CopyIcon />
-          </IconButton>
-          {copyStatus === "copied" && (
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-green-800 text-white text-xs px-2 py-1 rounded z-50">
-              Copied!
-            </div>
-          )}
-          {copyStatus === "error" && (
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-red-800 text-white text-xs px-2 py-1 rounded z-50">
-              Failed to copy
-            </div>
-          )}
-        </div>
+        <div className="flex min-w-0 basis-auto select-none items-center gap-1.5 leading-[0]">
+          <div className="flex items-center gap-1.5">
+            <IconButton ariaLabel="Version History">
+              <VersionHistoryIcon />
+            </IconButton>
 
-        <IconButton ariaLabel="Share">
-          <ShareIcon />
-        </IconButton>
-      </div>
-    </header>
+            <IconButton ariaLabel="Previous Version" disabled>
+              <PreviousVersionIcon />
+            </IconButton>
+
+            <IconButton ariaLabel="Next Version" disabled>
+              <NextVersionIcon />
+            </IconButton>
+          </div>
+
+          <div className="relative">
+            <IconButton ariaLabel={copyStatus === "copied" ? "Copied!" : "Copy as Markdown"} onClick={handleCopy}>
+              <CopyIcon />
+            </IconButton>
+            {copyStatus === "copied" && (
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-green-800 text-white text-xs px-2 py-1 rounded z-50">
+                Copied!
+              </div>
+            )}
+            {copyStatus === "error" && (
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-red-800 text-white text-xs px-2 py-1 rounded z-50">
+                Failed to copy
+              </div>
+            )}
+          </div>
+
+          <IconButton ariaLabel="Share" onClick={() => setIsShareDialogOpen(true)}>
+            <ShareIcon />
+          </IconButton>
+        </div>
+      </header>
+      
+      {/* Share Dialog */}
+      <ShareDialog 
+        isOpen={isShareDialogOpen} 
+        onClose={() => setIsShareDialogOpen(false)} 
+        documentName={documentName} 
+      />
+    </>
   );
 }
