@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "1013:1013"
+    environment:
+      - PORT=1013
+    restart: unless-stopped
+    command: sh -c "PORT=1013 npm start"
