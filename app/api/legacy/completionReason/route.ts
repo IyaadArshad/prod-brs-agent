@@ -12,7 +12,7 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "http://localhost:3000/api/legacy/data/createFile",
+    "https://finac-brs-agent.acroford.com/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,7 +30,7 @@ async function create_file(file_name: string) {
 async function write_initial_data(file_contents: string, file_name: string) {
   // Change the function signature to match what the model expects
   const response = await fetch(
-    "http://localhost:3000/api/v2/reason/writeInitialData",
+    "https://finac-brs-agent.acroford.com/api/v2/reason/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ async function publish_new_version(new_file: string, file_name: string) {
   const data = new_file;
   
   const response = await fetch(
-    "http://localhost:3000/api/v2/reason/publishNewVersion",
+    "https://finac-brs-agent.acroford.com/api/v2/reason/publishNewVersion",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,7 +97,7 @@ async function publish_new_version(new_file: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `http://localhost:3000/api/legacy/data/readFile?file_name=${file_name}`,
+    `https://finac-brs-agent.acroford.com/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -445,7 +445,7 @@ export async function POST(request: Request) {
                 } else if (name === "search") {
                   try {
                     const response = await fetch(
-                      `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
+                      `https://finac-brs-agent.acroford.com/api/v1/search?query=${functionArgs.query}`,
                       {
                         method: "GET",
                         headers: { "Content-Type": "application/json" },

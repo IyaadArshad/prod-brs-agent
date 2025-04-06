@@ -150,7 +150,7 @@ ${overview}
     );
 
     const publishNewVersion = await fetch(
-      "http://localhost:3000/api/legacy/data/publishNewVersion",
+      "https://finac-brs-agent.acroford.com/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

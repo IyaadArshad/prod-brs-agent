@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   // get an overview
   try {
     const overviewResponse = await fetch(
-      "http://localhost:3000/api/v2/models/getOverview",
+      "https://finac-brs-agent.acroford.com/api/v2/models/getOverview",
       {
         method: "POST",
         headers: {
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
   try {
     const implemented_overview = await fetch(
-      "http://localhost:3000/api/v2/models/implementOverview",
+      "https://finac-brs-agent.acroford.com/api/v2/models/implementOverview",
       {
         method: "POST",
         headers: {

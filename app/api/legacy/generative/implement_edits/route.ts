@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   // get an overview
   try {
     overview = await fetch(
-      "http://localhost:3000/api/generative/get_overview",
+      "https://finac-brs-agent.acroford.com/api/generative/get_overview",
       {
         method: "POST",
         headers: {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
   try {
     const implemented_overview = await fetch(
-      "http://localhost:3000/api/generative/implement_overview",
+      "https://finac-brs-agent.acroford.com/api/generative/implement_overview",
       {
         method: "POST",
         headers: {
