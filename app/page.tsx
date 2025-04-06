@@ -52,9 +52,6 @@ export default function ChatInterface() {
     }
   };
 
-  // Use SearchParamsHandler properly
-  const searchParams = useSearchParams();
-  <SearchParamsHandler onParamsChange={handleSearchParamsChange} />;
   const [message, setMessage] = useState("");
   const [commandFilter, setCommandFilter] = useState("");
   const [splitView, setSplitView] = useState(false);
@@ -663,19 +660,6 @@ export default function ChatInterface() {
     }
   };
 
-  // This effect is now handled by the SearchParamsHandler component
-  // through the handleSearchParamsChange function
-  useEffect(() => {
-    const splitScreenParam = searchParams.get("splitScreen");
-    const fileNameParam = searchParams.get("fileName");
-
-    if (splitScreenParam === "true" && fileNameParam) {
-      setSplitView(true);
-      setOpenedDocument(fileNameParam);
-      setIsConversationStarted(true); // Set conversation started to true to skip welcome screen
-    }
-  }, [searchParams]);
-
   useEffect(() => {
     if (splitView && openedDocument) {
       setIsFileLoading(true);
@@ -685,20 +669,20 @@ export default function ChatInterface() {
         .then((response) => {
           if (response.success && response.data) {
             const { data } = response;
-            
+
             // Check if data has versions
             if (data.data && data.data.versions && data.data.latestVersion) {
               const latestVersion = data.data.latestVersion;
               const versions = data.data.versions;
-              
+
               // Set the file content to the latest version
               setFileContent(versions[latestVersion.toString()] || "");
-              
+
               // Store version data for navigation
               setVersionData({
                 currentVersion: latestVersion,
                 latestVersion: latestVersion,
-                versions: versions
+                versions: versions,
               });
             } else {
               // Fallback to legacy behavior for files without versioning
@@ -721,9 +705,15 @@ export default function ChatInterface() {
 
   // Handle version selection
   const handleSelectVersion = (version: number) => {
-    if (versionData && versionData.versions && versionData.versions[version.toString()]) {
+    if (
+      versionData &&
+      versionData.versions &&
+      versionData.versions[version.toString()]
+    ) {
       setFileContent(versionData.versions[version.toString()]);
-      setVersionData(prev => prev ? { ...prev, currentVersion: version } : null);
+      setVersionData((prev) =>
+        prev ? { ...prev, currentVersion: version } : null
+      );
     }
   };
 
@@ -786,369 +776,382 @@ export default function ChatInterface() {
     );
   }
 
-  return splitView ? (
-    <div className="flex h-screen overflow-hidden bg-black">
-      {leftPaneToRight ? (
-        <>
-          {/* Right pane */}
-          <div
-            className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
-            style={{ flexBasis: `${100 - editorWidth}%` }}
-          >
-            {!isConversationStarted ? (
-              <main className="flex-1 flex flex-col items-center justify-center p-4">
-                <motion.h1
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-4xl mb-8"
-                >
-                  What can I help with?
-                </motion.h1>
+  return (
+    <>
+      <SearchParamsHandler onParamsChange={handleSearchParamsChange} />
+      {splitView ? (
+        <div className="flex h-screen overflow-hidden bg-black">
+          {leftPaneToRight ? (
+            <>
+              {/* Right pane */}
+              <div
+                className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
+                style={{ flexBasis: `${100 - editorWidth}%` }}
+              >
+                {!isConversationStarted ? (
+                  <main className="flex-1 flex flex-col items-center justify-center p-4">
+                    <motion.h1
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-4xl mb-8"
+                    >
+                      What can I help with?
+                    </motion.h1>
 
-                <ChatInputBox
-                  message={message}
-                  setMessage={setMessage}
-                  handleSendMessage={handleSendMessage}
-                  handleStopRequest={handleStopRequest}
-                  isStreaming={isStreaming}
-                  centerAlignment={true}
-                />
+                    <ChatInputBox
+                      message={message}
+                      setMessage={setMessage}
+                      handleSendMessage={handleSendMessage}
+                      handleStopRequest={handleStopRequest}
+                      isStreaming={isStreaming}
+                      centerAlignment={true}
+                    />
 
-                <footer className="p-4 text-center text-sm text-gray-400">
-                  <p>
-                    By messaging GPT, you do not agree to our{" "}
-                    <Link href="#" className="underline hover:text-white">
-                      Terms
-                    </Link>{" "}
-                    and have read our{" "}
-                    <Link href="#" className="underline hover:text-white">
-                      Privacy Policy
-                    </Link>
-                  </p>
-                </footer>
-              </main>
-            ) : (
-              <>
-                <div className="flex-1 overflow-y-auto">
-                  <AnimatePresence>
-                    {messages.map((msg, index) => (
-                      <MessageComponent
-                        key={msg.id}
-                        message={msg}
-                        onEdit={handleEditMessage}
-                        onDelete={handleDeleteMessage}
-                        onRegenerate={handleRegenerateMessage}
-                        streaming={
-                          isStreaming &&
-                          msg.role === "assistant" &&
-                          index === messages.length - 1
-                        }
-                      />
-                    ))}
-                  </AnimatePresence>
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="">
-                  <div className="max-w-3xl mx-auto p-4">
-                    <div className="sticky bottom-0 p-4">
-                      <ChatInputBox
-                        message={message}
-                        setMessage={setMessage}
-                        handleSendMessage={handleSendMessage}
-                        handleStopRequest={handleStopRequest}
-                        isStreaming={isStreaming}
-                        commandFilter={commandFilter}
-                        setCommandFilter={setCommandFilter}
-                        selectedButtons={selectedButtons}
-                        setSelectedButtons={setSelectedButtons}
-                      />
-
-                      {message.startsWith("/") && (
-                        <CommandMenu
-                          isOpen={true}
-                          onSelect={handleCommandSelect}
-                          filter={commandFilter}
-                          splitView={splitView}
-                        />
-                      )}
+                    <footer className="p-4 text-center text-sm text-gray-400">
+                      <p>
+                        By messaging GPT, you do not agree to our{" "}
+                        <Link href="#" className="underline hover:text-white">
+                          Terms
+                        </Link>{" "}
+                        and have read our{" "}
+                        <Link href="#" className="underline hover:text-white">
+                          Privacy Policy
+                        </Link>
+                      </p>
+                    </footer>
+                  </main>
+                ) : (
+                  <>
+                    <div className="flex-1 overflow-y-auto">
+                      <AnimatePresence>
+                        {messages.map((msg, index) => (
+                          <MessageComponent
+                            key={msg.id}
+                            message={msg}
+                            onEdit={handleEditMessage}
+                            onDelete={handleDeleteMessage}
+                            onRegenerate={handleRegenerateMessage}
+                            streaming={
+                              isStreaming &&
+                              msg.role === "assistant" &&
+                              index === messages.length - 1
+                            }
+                          />
+                        ))}
+                      </AnimatePresence>
+                      <div ref={messagesEndRef} />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      GPT can make mistakes. It is not a bug, it is a feature.
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          <div
-            className="w-[4px] transition-colors duration-300 hover:bg-[#555555] bg-black cursor-col-resize"
-            onMouseDown={handleMouseDown}
-          />
-          {/* Left pane on right side with left border */}
-          <div
-            className="border-l screen border-black overflow-y-auto"
-            style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
-          >
-            <div>
-              {/* Document header bar - now using the component */}
-              <div className="bg-[#2f2f2f] sticky top-0 z-10">
-                <DocumentHeader
-                  documentName={openedDocument}
-                  onClose={handleDocumentClose}
-                  onMoveSide={() => setLeftPaneToRight(false)}
-                  moveLabel="Move to left side"
-                  documentContent={fileContent}
-                  versionData={versionData || undefined}
-                  onSelectVersion={handleSelectVersion}
-                />
-              </div>
 
-              {/* Editor content */}
-              {isFileLoading ? (
-                <div className="flex flex-col items-center justify-center min-h-screen">
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
-                  <h2 className="text-2xl text-[#fff] font-bold mt-4">
-                    Loading {openedDocument}
-                  </h2>
-                  <p className="text-gray-500 mt-2">
-                    Please wait while we load your document...
-                  </p>
-                </div>
-              ) : (
-                <div className="h-full">
-                  <SplitScreenEditor markdown={fileContent} />
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      ) : (
-        // Default layout with left pane on left side.
-        <>
-          {/* Left pane */}
-          <div
-            className="border-r screen border-black overflow-y-auto"
-            style={{ flexBasis: `${editorWidth}%`, backgroundColor: "#1e1e1e" }}
-          >
-            <div>
-              {/* Document header bar - now using the component */}
-              <div className="bg-[#2f2f2f] sticky top-0 z-10">
-                <DocumentHeader
-                  documentName={openedDocument}
-                  onClose={handleDocumentClose}
-                  onMoveSide={() => setLeftPaneToRight(true)}
-                  moveLabel="Move to right side"
-                  documentContent={fileContent}
-                  versionData={versionData || undefined}
-                  onSelectVersion={handleSelectVersion}
-                />
-              </div>
-              {/* Editor content */}
-              {isFileLoading ? (
-                <div className="flex flex-col items-center justify-center min-h-screen">
-                  <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
-                  <h2 className="text-2xl text-[#fff] font-bold mt-4">
-                    Loading {openedDocument}
-                  </h2>
-                  <p className="text-gray-500 mt-2">
-                    Please wait while we load your document...
-                  </p>
-                </div>
-              ) : (
-                <div className="h-full">
-                  <SplitScreenEditor markdown={fileContent} />
-                </div>
-              )}
-            </div>
-          </div>
-          <div
-            className="w-[4px] hover:bg-[#555555] duration-300 transition-colors bg-black cursor-col-resize"
-            onMouseDown={handleMouseDown}
-          />
-          {/* Right pane */}
-          <div
-            className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
-            style={{ flexBasis: `${100 - editorWidth}%` }}
-          >
-            {!isConversationStarted ? (
-              <main className="flex-1 flex flex-col items-center justify-center p-4">
-                <motion.h1
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-4xl mb-8"
-                >
-                  What can I help with?
-                </motion.h1>
+                    <div className="">
+                      <div className="max-w-3xl mx-auto p-4">
+                        <div className="sticky bottom-0 p-4">
+                          <ChatInputBox
+                            message={message}
+                            setMessage={setMessage}
+                            handleSendMessage={handleSendMessage}
+                            handleStopRequest={handleStopRequest}
+                            isStreaming={isStreaming}
+                            commandFilter={commandFilter}
+                            setCommandFilter={setCommandFilter}
+                            selectedButtons={selectedButtons}
+                            setSelectedButtons={setSelectedButtons}
+                          />
 
-                <ChatInputBox
-                  message={message}
-                  setMessage={setMessage}
-                  handleSendMessage={handleSendMessage}
-                  handleStopRequest={handleStopRequest}
-                  isStreaming={isStreaming}
-                  centerAlignment={true}
-                />
-
-                <footer className="p-4 text-center text-sm text-gray-400">
-                  <p>
-                    By messaging GPT, you do not agree to our{" "}
-                    <Link href="#" className="underline hover:text-white">
-                      Terms
-                    </Link>{" "}
-                    and have read our{" "}
-                    <Link href="#" className="underline hover:text-white">
-                      Privacy Policy
-                    </Link>
-                  </p>
-                </footer>
-              </main>
-            ) : (
-              <>
-                <div className="flex-1 overflow-y-auto">
-                  <AnimatePresence>
-                    {messages.map((msg, index) => (
-                      <MessageComponent
-                        key={msg.id}
-                        message={msg}
-                        onEdit={handleEditMessage}
-                        onDelete={handleDeleteMessage}
-                        onRegenerate={handleRegenerateMessage}
-                        streaming={
-                          isStreaming &&
-                          msg.role === "assistant" &&
-                          index === messages.length - 1
-                        }
-                      />
-                    ))}
-                  </AnimatePresence>
-                  <div ref={messagesEndRef} />
-                </div>
-
-                <div className="">
-                  <div className="max-w-3xl mx-auto p-4">
-                    <div className="sticky bottom-0 p-4">
-                      <ChatInputBox
-                        message={message}
-                        setMessage={setMessage}
-                        handleSendMessage={handleSendMessage}
-                        handleStopRequest={handleStopRequest}
-                        isStreaming={isStreaming}
-                        commandFilter={commandFilter}
-                        setCommandFilter={setCommandFilter}
-                        selectedButtons={selectedButtons}
-                        setSelectedButtons={setSelectedButtons}
-                      />
-
-                      {message.startsWith("/") && (
-                        <CommandMenu
-                          isOpen={true}
-                          onSelect={handleCommandSelect}
-                          filter={commandFilter}
-                          splitView={splitView}
-                        />
-                      )}
+                          {message.startsWith("/") && (
+                            <CommandMenu
+                              isOpen={true}
+                              onSelect={handleCommandSelect}
+                              filter={commandFilter}
+                              splitView={splitView}
+                            />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          GPT can make mistakes. It is not a bug, it is a
+                          feature.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      GPT can make mistakes. It is not a bug, it is a feature.
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  ) : (
-    <div className="h-screen chat-container screen text-white flex flex-col overflow-hidden">
-      {" "}
-      {/* The entire chat interface goes here */}
-      {!isConversationStarted ? (
-        <main className="flex-1 flex flex-col items-center justify-center p-4">
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl mb-8"
-          >
-            What can I help with?
-          </motion.h1>
-
-          <ChatInputBox
-            message={message}
-            setMessage={setMessage}
-            handleSendMessage={handleSendMessage}
-            handleStopRequest={handleStopRequest}
-            isStreaming={isStreaming}
-            centerAlignment={true}
-          />
-
-          <footer className="p-4 text-center text-sm text-gray-400">
-            <p>
-              By messaging GPT, you do not agree to our{" "}
-              <Link href="#" className="underline hover:text-white">
-                Terms
-              </Link>{" "}
-              and have read our{" "}
-              <Link href="#" className="underline hover:text-white">
-                Privacy Policy
-              </Link>
-            </p>
-          </footer>
-        </main>
-      ) : (
-        <>
-          <div className="flex-1 overflow-y-auto">
-            <AnimatePresence>
-              {messages.map((msg, index) => (
-                <MessageComponent
-                  key={msg.id}
-                  message={msg}
-                  onEdit={handleEditMessage}
-                  onDelete={handleDeleteMessage}
-                  onRegenerate={handleRegenerateMessage}
-                  streaming={
-                    isStreaming &&
-                    msg.role === "assistant" &&
-                    index === messages.length - 1
-                  }
-                />
-              ))}
-            </AnimatePresence>
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="">
-            <div className="max-w-5xl mx-auto p-4">
-              <div className="sticky bottom-0 p-4">
-                <ChatInputBox
-                  message={message}
-                  setMessage={setMessage}
-                  handleSendMessage={handleSendMessage}
-                  handleStopRequest={handleStopRequest}
-                  isStreaming={isStreaming}
-                  commandFilter={commandFilter}
-                  setCommandFilter={setCommandFilter}
-                  selectedButtons={selectedButtons}
-                  setSelectedButtons={setSelectedButtons}
-                />
-
-                {message.startsWith("/") && (
-                  <CommandMenu
-                    isOpen={true}
-                    onSelect={handleCommandSelect}
-                    filter={commandFilter}
-                    splitView={splitView}
-                  />
+                  </>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                GPT can make mistakes. It is not a bug, it is a feature.
-              </p>
-            </div>
-          </div>
-        </>
+              <div
+                className="w-[4px] transition-colors duration-300 hover:bg-[#555555] bg-black cursor-col-resize"
+                onMouseDown={handleMouseDown}
+              />
+              {/* Left pane on right side with left border */}
+              <div
+                className="border-l screen border-black overflow-y-auto"
+                style={{
+                  flexBasis: `${editorWidth}%`,
+                  backgroundColor: "#1e1e1e",
+                }}
+              >
+                <div>
+                  {/* Document header bar - now using the component */}
+                  <div className="bg-[#2f2f2f] sticky top-0 z-10">
+                    <DocumentHeader
+                      documentName={openedDocument}
+                      onClose={handleDocumentClose}
+                      onMoveSide={() => setLeftPaneToRight(false)}
+                      moveLabel="Move to left side"
+                      documentContent={fileContent}
+                      versionData={versionData || undefined}
+                      onSelectVersion={handleSelectVersion}
+                    />
+                  </div>
+
+                  {/* Editor content */}
+                  {isFileLoading ? (
+                    <div className="flex flex-col items-center justify-center min-h-screen">
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
+                      <h2 className="text-2xl text-[#fff] font-bold mt-4">
+                        Loading {openedDocument}
+                      </h2>
+                      <p className="text-gray-500 mt-2">
+                        Please wait while we load your document...
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="h-full">
+                      <SplitScreenEditor markdown={fileContent} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            // Default layout with left pane on left side.
+            <>
+              {/* Left pane */}
+              <div
+                className="border-r screen border-black overflow-y-auto"
+                style={{
+                  flexBasis: `${editorWidth}%`,
+                  backgroundColor: "#1e1e1e",
+                }}
+              >
+                <div>
+                  {/* Document header bar - now using the component */}
+                  <div className="bg-[#2f2f2f] sticky top-0 z-10">
+                    <DocumentHeader
+                      documentName={openedDocument}
+                      onClose={handleDocumentClose}
+                      onMoveSide={() => setLeftPaneToRight(true)}
+                      moveLabel="Move to right side"
+                      documentContent={fileContent}
+                      versionData={versionData || undefined}
+                      onSelectVersion={handleSelectVersion}
+                    />
+                  </div>
+                  {/* Editor content */}
+                  {isFileLoading ? (
+                    <div className="flex flex-col items-center justify-center min-h-screen">
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900"></div>
+                      <h2 className="text-2xl text-[#fff] font-bold mt-4">
+                        Loading {openedDocument}
+                      </h2>
+                      <p className="text-gray-500 mt-2">
+                        Please wait while we load your document...
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="h-full">
+                      <SplitScreenEditor markdown={fileContent} />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div
+                className="w-[4px] hover:bg-[#555555] duration-300 transition-colors bg-black cursor-col-resize"
+                onMouseDown={handleMouseDown}
+              />
+              {/* Right pane */}
+              <div
+                className="flex screen flex-col bg-[#1E1E1E] text-white overflow-y-auto chat-container"
+                style={{ flexBasis: `${100 - editorWidth}%` }}
+              >
+                {!isConversationStarted ? (
+                  <main className="flex-1 flex flex-col items-center justify-center p-4">
+                    <motion.h1
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-4xl mb-8"
+                    >
+                      What can I help with?
+                    </motion.h1>
+
+                    <ChatInputBox
+                      message={message}
+                      setMessage={setMessage}
+                      handleSendMessage={handleSendMessage}
+                      handleStopRequest={handleStopRequest}
+                      isStreaming={isStreaming}
+                      centerAlignment={true}
+                    />
+
+                    <footer className="p-4 text-center text-sm text-gray-400">
+                      <p>
+                        By messaging GPT, you do not agree to our{" "}
+                        <Link href="#" className="underline hover:text-white">
+                          Terms
+                        </Link>{" "}
+                        and have read our{" "}
+                        <Link href="#" className="underline hover:text-white">
+                          Privacy Policy
+                        </Link>
+                      </p>
+                    </footer>
+                  </main>
+                ) : (
+                  <>
+                    <div className="flex-1 overflow-y-auto">
+                      <AnimatePresence>
+                        {messages.map((msg, index) => (
+                          <MessageComponent
+                            key={msg.id}
+                            message={msg}
+                            onEdit={handleEditMessage}
+                            onDelete={handleDeleteMessage}
+                            onRegenerate={handleRegenerateMessage}
+                            streaming={
+                              isStreaming &&
+                              msg.role === "assistant" &&
+                              index === messages.length - 1
+                            }
+                          />
+                        ))}
+                      </AnimatePresence>
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    <div className="">
+                      <div className="max-w-3xl mx-auto p-4">
+                        <div className="sticky bottom-0 p-4">
+                          <ChatInputBox
+                            message={message}
+                            setMessage={setMessage}
+                            handleSendMessage={handleSendMessage}
+                            handleStopRequest={handleStopRequest}
+                            isStreaming={isStreaming}
+                            commandFilter={commandFilter}
+                            setCommandFilter={setCommandFilter}
+                            selectedButtons={selectedButtons}
+                            setSelectedButtons={setSelectedButtons}
+                          />
+
+                          {message.startsWith("/") && (
+                            <CommandMenu
+                              isOpen={true}
+                              onSelect={handleCommandSelect}
+                              filter={commandFilter}
+                              splitView={splitView}
+                            />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          GPT can make mistakes. It is not a bug, it is a
+                          feature.
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="h-screen chat-container screen text-white flex flex-col overflow-hidden">
+          {" "}
+          {/* The entire chat interface goes here */}
+          {!isConversationStarted ? (
+            <main className="flex-1 flex flex-col items-center justify-center p-4">
+              <motion.h1
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl mb-8"
+              >
+                What can I help with?
+              </motion.h1>
+
+              <ChatInputBox
+                message={message}
+                setMessage={setMessage}
+                handleSendMessage={handleSendMessage}
+                handleStopRequest={handleStopRequest}
+                isStreaming={isStreaming}
+                centerAlignment={true}
+              />
+
+              <footer className="p-4 text-center text-sm text-gray-400">
+                <p>
+                  By messaging GPT, you do not agree to our{" "}
+                  <Link href="#" className="underline hover:text-white">
+                    Terms
+                  </Link>{" "}
+                  and have read our{" "}
+                  <Link href="#" className="underline hover:text-white">
+                    Privacy Policy
+                  </Link>
+                </p>
+              </footer>
+            </main>
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto">
+                <AnimatePresence>
+                  {messages.map((msg, index) => (
+                    <MessageComponent
+                      key={msg.id}
+                      message={msg}
+                      onEdit={handleEditMessage}
+                      onDelete={handleDeleteMessage}
+                      onRegenerate={handleRegenerateMessage}
+                      streaming={
+                        isStreaming &&
+                        msg.role === "assistant" &&
+                        index === messages.length - 1
+                      }
+                    />
+                  ))}
+                </AnimatePresence>
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="">
+                <div className="max-w-5xl mx-auto p-4">
+                  <div className="sticky bottom-0 p-4">
+                    <ChatInputBox
+                      message={message}
+                      setMessage={setMessage}
+                      handleSendMessage={handleSendMessage}
+                      handleStopRequest={handleStopRequest}
+                      isStreaming={isStreaming}
+                      commandFilter={commandFilter}
+                      setCommandFilter={setCommandFilter}
+                      selectedButtons={selectedButtons}
+                      setSelectedButtons={setSelectedButtons}
+                    />
+
+                    {message.startsWith("/") && (
+                      <CommandMenu
+                        isOpen={true}
+                        onSelect={handleCommandSelect}
+                        filter={commandFilter}
+                        splitView={splitView}
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    GPT can make mistakes. It is not a bug, it is a feature.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 }
