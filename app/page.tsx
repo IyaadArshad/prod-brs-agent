@@ -52,6 +52,46 @@ export default function ChatInterface() {
     }
   };
 
+  const searchParams = useSearchParams();
+
+  // Add email validation helper function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Add URL parameter override for user registration
+  useEffect(() => {
+    const nameParam = searchParams?.get("name");
+    const emailParam = searchParams?.get("email");
+
+    if (nameParam && emailParam && nameParam.trim() && isValidEmail(emailParam.trim())) {
+      try {
+        const defaultAvatarUrl = "https://brs-agent.acroford.com/images/default_pfp.png";
+        const avatarUrl = gravatarUrl(emailParam.trim(), {
+          default: defaultAvatarUrl,
+          size: 200,
+        });
+        
+        // Set cookies
+        Cookies.set("gravatar", avatarUrl, { expires: 365 });
+        Cookies.set("userEmail", emailParam.trim(), { expires: 365 });
+        Cookies.set("userName", nameParam.trim(), { expires: 365 });
+        Cookies.set("user", JSON.stringify({ 
+          name: nameParam.trim(), 
+          email: emailParam.trim() 
+        }), { expires: 365 });
+        
+        // Show success message
+        alert("Override successful. Page will reload.");
+        window.location.href = window.location.pathname; // Reload without parameters
+      } catch (error) {
+        console.error("Error during parameter override:", error);
+        alert("Override failed. Check console for details.");
+      }
+    }
+  }, [searchParams]);
+
   const [message, setMessage] = useState("");
   const [commandFilter, setCommandFilter] = useState("");
   const [splitView, setSplitView] = useState(false);
