@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { SplitScreenEditor } from "@/components/splitScreenEditor";
 import { DocumentHeader } from "@/components/DocumentHeader";
 import { ChatInputBox } from "@/components/ChatInputBox";
 import { useSearchParams } from "next/navigation";
+import React, { Suspense } from "react";
 
 declare global {
   interface Window {
@@ -40,7 +41,7 @@ function SearchParamsHandler({
   return null;
 }
 
-export default function ChatInterface() {
+function ChatInterface() {
   const handleSearchParamsChange = (
     splitScreen: string | null,
     fileName: string | null
@@ -173,7 +174,7 @@ export default function ChatInterface() {
     }
   }, []);
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
       e.preventDefault();
       let newWidth;
@@ -186,7 +187,7 @@ export default function ChatInterface() {
       setEditorWidth(newWidth);
       document.body.style.cursor = "col-resize"; // Change cursor during drag
     }
-  };
+  }, [isDragging, leftPaneToRight]);
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -207,7 +208,7 @@ export default function ChatInterface() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging]);
+  }, [handleMouseMove]);
 
   const handleCommandSelect = (action: string) => {
     // Implement the action handling logic here
@@ -1193,5 +1194,13 @@ export default function ChatInterface() {
         </div>
       )}
     </>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatInterface />
+    </Suspense>
   );
 }
