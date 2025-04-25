@@ -1,3 +1,7 @@
+import PocketBase from "pocketbase";
+
+const pb = new PocketBase(`${process.env.POCKETBASE_SERVER_URL}`);
+
 export async function POST(request: Request) {
   let user_inputs;
   let file_name;
@@ -24,18 +28,27 @@ export async function POST(request: Request) {
   console.log("SUBFUNCTION HAS BEEN CALLED -> IMPLEMENT EDITS");
   console.log();
 
-  const verbose = {
+  // Define verbose with optional properties for debugging
+  const verbose: {
+    timestamp: string;
+    route: string;
+    inputs: { user_inputs: any; file_name: any };
+    overview?: any; // Make overview optional
+    newVersionContent?: string; // Make newVersionContent optional
+    error?: string; // Make error optional
+  } = {
     timestamp: new Date().toISOString(),
     route: "implement_edits",
     inputs: { user_inputs, file_name },
   };
 
-  let overview;
+  let overview: string | undefined;
+  let file_contents: { data: string } | undefined;
 
   // get an overview
   try {
     const overviewResponse = await fetch(
-      "https://finac-brs-agent.acroford.com/api/v2/models/getOverview",
+      "http://localhost:3000/api/v2/models/getOverview",
       {
         method: "POST",
         headers: {
@@ -56,72 +69,154 @@ export async function POST(request: Request) {
       );
     }
 
-    overview = await overviewResponse.json();
+    const overviewData = await overviewResponse.json();
+    overview = overviewData.prompt; // Correctly extract the 'prompt' which contains the overview
+    file_contents = { data: overviewData.file_contents }; // Correctly extract 'file_contents'
 
-    if (!overview || !overview.prompt || !overview.file_contents) {
-      throw new Error("Overview API returned incomplete data");
+    // Add a check specifically for the prompt/overview content and file_contents data
+    if (!overview || typeof overview !== 'string' || !file_contents || typeof file_contents.data !== 'string') { // Check types
+        console.error("Invalid data received from getOverview:", overviewData); // Log the received data
+        throw new Error("Invalid response structure or content from getOverview"); // More specific error
     }
   } catch (error) {
     console.error("Error getting overview:", error);
+    verbose.error = error instanceof Error ? error.message : String(error);
     // Return an error response
-    return Response.json({
-      success: false,
-      message:
-        "Failed to generate an implementation plan: " +
-        (error instanceof Error ? error.message : String(error)),
-    });
+    return Response.json(
+      {
+        success: false,
+        message:
+          "Failed to generate an implementation plan: " +
+          (error instanceof Error ? error.message : String(error)),
+        verbose: verbose, // Include verbose data
+      },
+      { status: 500 }
+    );
   }
+
+  // At this point, overview and file_contents are guaranteed to be defined and have the correct types
+  // because of the check and the catch block above.
 
   console.log("GENERATED OVERVIEW / IMPLEMENTATION PLAN");
   console.log("Overview: ", overview);
 
-  // implement that overview
-
+  // implement the overview
   try {
-    const implemented_overview = await fetch(
-      "https://finac-brs-agent.acroford.com/api/v2/models/implementOverview",
+    const implementOverviewResponse = await fetch(
+      "http://localhost:3000/api/v2/models/implementOverview",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          overview: overview.prompt,
+          overview: overview, 
+          file_contents: file_contents.data,
           file_name: file_name,
-          file_contents: overview.file_contents,
         }),
       }
     );
 
-    if (!implemented_overview.ok) {
-      const errorText = await implemented_overview.text();
-      console.error(`Failed to implement overview: ${errorText}`);
-      throw new Error(
-        `Implementation API returned status ${implemented_overview.status}: ${errorText}`
-      );
+    // Check response first
+    if (!implementOverviewResponse.ok) {
+      // Try to parse JSON error first
+      let errorMessage = "Unknown implementOverview error";
+      try {
+        const errorData = await implementOverviewResponse.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, try text
+        try {
+          errorMessage = await implementOverviewResponse.text();
+        } catch (e2) {
+          // If text extraction fails, use status
+          errorMessage = `Status ${implementOverviewResponse.status}: ${implementOverviewResponse.statusText}`;
+        }
+      }
+      throw new Error(`Failed to implement overview: ${errorMessage}`);
     }
 
-    const implemenent_overview_json = await implemented_overview.json();
-    const latestVersion = implemenent_overview_json.latestVersion;
+    // Parse the response
+    const implementOverviewJson = await implementOverviewResponse.json();
+    console.log("implementOverview response:", JSON.stringify(implementOverviewJson, null, 2));
+
+    // Validate newVersion more thoroughly with proper error handling
+    if (!implementOverviewJson || typeof implementOverviewJson !== 'object') {
+      throw new Error('implementOverview returned non-object response');
+    }
+    
+    if (!('newVersion' in implementOverviewJson)) {
+      throw new Error('implementOverview response missing newVersion field');
+    }
+    
+    if (typeof implementOverviewJson.newVersion !== 'string') {
+      throw new Error(`implementOverview returned newVersion of type ${typeof implementOverviewJson.newVersion} instead of string`);
+    }
+    
+    if (implementOverviewJson.newVersion.length < 100) {
+      throw new Error('implementOverview returned suspiciously short newVersion');
+    }
+
+    // Once validated, extract the content
+    const newVersionContent = implementOverviewJson.newVersion;
+
+    // --- PocketBase Update Logic ---
+    console.log("Fetching file ID for:", file_name);
+    const record = await pb
+      .collection("files")
+      .getFirstListItem(`file_name='${file_name}'`, { fields: "id, data" }); // Fetch data too
+
+    const id = record.id;
+    console.log("Found file ID:", id);
+
+    const recordData = record.data || {}; // Use existing data
+
+    if (!recordData.versions) {
+      recordData.versions = {};
+    }
+
+    // Ensure latestVersion is a number, default to 0 if missing/invalid
+    let currentVersion = typeof recordData.latestVersion === 'number' ? recordData.latestVersion : 0;
+
+    // Increment version number
+    const newVersionNumber = currentVersion + 1;
+    recordData.latestVersion = newVersionNumber;
+
+    // Add new version data
+    recordData.versions[newVersionNumber] = newVersionContent; // Store the new content
+
+    console.log("Updating record with new version:", newVersionNumber);
+
+    // Update the file record in PocketBase
+    await pb.collection("files").update(id, {
+      data: recordData, // Update the whole data object
+    });
+    // --- End PocketBase Update Logic ---
+
+
+    verbose.overview = overview; // Add overview to verbose data
+    verbose.newVersionContent = newVersionContent; // Add new content for debugging if needed
 
     console.log("IMPLEMENTED OVERVIEW");
-    console.log("Implementation: ", implemented_overview);
     return Response.json({
       success: true,
-      overview: overview,
+      overview: overview, // Keep sending the overview back
       message:
         "Display the overview of what was implemented to the user in a message, without changing it at all. The edits have successfully been made to the file",
       file_name: file_name,
-      latestVersion: latestVersion,
+      latestVersion: newVersionNumber, // Return the new latest version number
       verbose: verbose, // Add verbose data to response
     });
   } catch (error) {
-    console.error("Error implementing overview:", error);
-    return Response.json({
-      success: false,
-      message:
-        "Successfully generated an implementation plan, but was unable to implement it: " +
-        (error instanceof Error ? error.message : String(error)),
-    });
+    console.error("Error implementing overview or updating PocketBase:", error); // Updated error log
+    verbose.error = error instanceof Error ? error.message : String(error); // Log error details
+    return Response.json(
+      {
+        success: false,
+        message:
+          "Successfully generated an implementation plan, but was unable to implement it or save it: " +
+          (error instanceof Error ? error.message : String(error)),
+        verbose: verbose, // Include verbose data even on error
+      },
+      { status: 500 } // Use 500 for server-side errors
+    );
   }
 }

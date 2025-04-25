@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   const Usrprompt = `Hello. Write initial data to file **${file_name}** using the following user request "${user_inputs}"`;
   try {
     response = await openai.chat.completions.create({
-      model: "o3-mini",
+      model: "o4-mini",
       reasoning_effort: "high",
       messages: [
         {

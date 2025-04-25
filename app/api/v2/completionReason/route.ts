@@ -11,7 +11,7 @@ type Message =
 
 async function create_file(file_name: string) {
   const response = await fetch(
-    "https://finac-brs-agent.acroford.com/api/legacy/data/createFile",
+    "http://localhost:3000/api/legacy/data/createFile",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,7 +38,7 @@ async function create_file(file_name: string) {
 
 async function write_initial_data(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://finac-brs-agent.acroford.com/api/v2/models/writeInitialData",
+    "http://localhost:3000/api/v2/models/writeInitialData",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ async function write_initial_data(user_inputs: string, file_name: string) {
 
 async function implement_edits(user_inputs: string, file_name: string) {
   const response = await fetch(
-    "https://finac-brs-agent.acroford.com/api/v2/models/implement_edits",
+    "http://localhost:3000/api/v2/models/implement_edits",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,7 +106,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
 
 async function read_file(file_name: string) {
   const response = await fetch(
-    `https://finac-brs-agent.acroford.com/api/legacy/data/readFile?file_name=${file_name}`,
+    `http://localhost:3000/api/legacy/data/readFile?file_name=${file_name}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
           while (true) {
             sendVerbose({ message: "Starting OpenAI request", conversation });
             
-            // Filter out unsupported "function" role messages for o3-mini model
+            // Filter out unsupported "function" role messages for o4-mini model
             const apiMessages = conversation.filter((msg) => msg.role !== "function");
             
             const openAiResponse = await fetch(
@@ -201,7 +201,7 @@ export async function POST(request: Request) {
                   Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                  model: `o3-mini`,
+                  model: `o4-mini`,
                   messages: apiMessages, // use the filtered messages
                   functions: [
                     {
@@ -255,7 +255,6 @@ export async function POST(request: Request) {
                     },
                   ],
                   temperature: 1.0,
-                  max_completion_tokens: 10000,
                   stream: false,
                 }),
               }
@@ -316,7 +315,7 @@ export async function POST(request: Request) {
               } else if (name === "search") {
                 try {
                   const response = await fetch(
-                    `https://finac-brs-agent.acroford.com/api/v1/search?query=${functionArgs.query}`,
+                    `http://localhost:3000/api/v1/search?query=${functionArgs.query}`,
                     {
                       method: "GET",
                       headers: { "Content-Type": "application/json" },

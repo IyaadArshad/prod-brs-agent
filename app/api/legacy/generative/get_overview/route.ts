@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     // Fetch file contents with better error handling
     const file_contents_fetch = (await Promise.race([
       fetch(
-        `https://finac-brs-agent.acroford.com/api/generative/functions/read_file?file_name=${encodeURIComponent(
+        `http://localhost:3000/api/generative/functions/read_file?file_name=${encodeURIComponent(
           file_name
         )}`,
         {
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -95,7 +95,6 @@ export async function POST(request: Request) {
         type: "text",
       },
       temperature: 0.84,
-      max_completion_tokens: 10000,
       top_p: 0.89,
       frequency_penalty: 0,
       presence_penalty: 0,

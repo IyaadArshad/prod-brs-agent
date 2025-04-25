@@ -41,7 +41,7 @@ Provide an appropriate continuation for the above line.
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -53,7 +53,6 @@ Provide an appropriate continuation for the above line.
         },
       ],
       temperature: 0.5,
-      max_tokens: 50,
       top_p: 1.0,
       frequency_penalty: 0.0,
       presence_penalty: 0.0,

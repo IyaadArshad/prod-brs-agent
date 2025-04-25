@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const { messages: userMessages } = await request.json();
 
     const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1",
         messages: [
           {
             "role": "system",
@@ -30,7 +30,6 @@ export async function POST(request: Request) {
           "type": "text"
         },
         temperature: 1.23,
-        max_completion_tokens: 7500,
         top_p: 0.63,
         frequency_penalty: 0.21,
         presence_penalty: 0.1
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
             id: `chatcmpl-${crypto.randomUUID()}`,
             object: "chat.completion.chunk",
             created: Math.floor(Date.now() / 1000),
-            model: "gpt-4o-mini-2024-07-18",
+            model: "gpt-4.1",
             service_tier: "default",
             system_fingerprint: "fp_01aeff40ea",
             choices: [

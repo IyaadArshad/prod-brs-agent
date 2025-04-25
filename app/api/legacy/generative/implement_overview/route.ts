@@ -72,7 +72,7 @@ ${overview}
 `;
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4.1",
       messages: [
         {
           role: "system",
@@ -108,7 +108,6 @@ ${overview}
         },
       },
       temperature: 0.7,
-      max_completion_tokens: 10000,
       top_p: 0.9,
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -127,7 +126,7 @@ ${overview}
     // put the new version number in a constant, just the integer
 
     const publishNewVersion = await fetch(
-      "https://finac-brs-agent.acroford.com/api/legacy/data/publishNewVersion",
+      "http://localhost:3000/api/legacy/data/publishNewVersion",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
