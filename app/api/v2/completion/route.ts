@@ -75,6 +75,7 @@ async function implement_edits(user_inputs: string, file_name: string) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_inputs, file_name }),
+      signal: AbortSignal.timeout(1500000),
     }
   );
 

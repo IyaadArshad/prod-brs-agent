@@ -72,12 +72,6 @@ export async function POST(request: Request) {
     const overviewData = await overviewResponse.json();
     overview = overviewData.prompt; // Correctly extract the 'prompt' which contains the overview
     file_contents = { data: overviewData.file_contents }; // Correctly extract 'file_contents'
-
-    // Add a check specifically for the prompt/overview content and file_contents data
-    if (!overview || typeof overview !== 'string' || !file_contents || typeof file_contents.data !== 'string') { // Check types
-        console.error("Invalid data received from getOverview:", overviewData); // Log the received data
-        throw new Error("Invalid response structure or content from getOverview"); // More specific error
-    }
   } catch (error) {
     console.error("Error getting overview:", error);
     verbose.error = error instanceof Error ? error.message : String(error);
@@ -112,6 +106,7 @@ export async function POST(request: Request) {
           file_contents: file_contents.data,
           file_name: file_name,
         }),
+        signal: AbortSignal.timeout(1500000), // Add 25-minute timeout
       }
     );
 
